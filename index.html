@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --cream:    #fdf8f0;
       --paper:    #fff9f2;
@@ -21,565 +21,434 @@
       --blue:     #1a4a8a;
       --green:    #1a5c30;
       --red:      #8a1a1a;
+      --purple:   #5b21b6;
+      --teal:     #0f766e;
       --shadow:   rgba(26,18,8,0.08);
       --font-ui:  'Inter', system-ui, sans-serif;
       --font-ser: 'Merriweather', Georgia, serif;
     }
-
-    body {
-      background: var(--cream);
-      color: var(--ink);
-      font-family: var(--font-ui);
-      min-height: 100vh;
-    }
+    body { background: var(--cream); color: var(--ink); font-family: var(--font-ui); min-height: 100vh; }
 
     /* ── Layout ── */
     .layout { display: flex; min-height: 100vh; }
-
     nav {
-      width: 240px;
-      flex-shrink: 0;
-      background: var(--paper);
-      border-right: 1px solid var(--border);
-      padding: 1.5rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
+      width: 220px; flex-shrink: 0; background: var(--paper);
+      border-right: 1px solid var(--border); padding: 1.25rem 0.875rem;
+      display: flex; flex-direction: column; gap: 0.2rem;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
     }
-
-    .nav-logo {
-      font-family: var(--font-ser);
-      font-size: 1.1rem;
-      color: var(--ink);
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .nav-btn {
-      display: block;
-      width: 100%;
-      background: none;
-      border: none;
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.88rem;
-      color: var(--ink-mid);
-      cursor: pointer;
-      font-family: var(--font-ui);
-      transition: background 0.15s;
-    }
+    .nav-logo { font-family: var(--font-ser); font-size: 1rem; color: var(--ink); margin-bottom: 0.875rem; padding-bottom: 0.875rem; border-bottom: 1px solid var(--border); }
+    .nav-section { font-size: 0.67rem; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.6rem 0.625rem 0.2rem; }
+    .nav-btn { display: block; width: 100%; background: none; border: none; text-align: left; padding: 0.5rem 0.625rem; border-radius: 6px; font-size: 0.84rem; color: var(--ink-mid); cursor: pointer; font-family: var(--font-ui); transition: background 0.15s; }
     .nav-btn:hover { background: var(--cream); }
     .nav-btn.active { background: #fef3c7; color: #92400e; font-weight: 600; }
-
-    .nav-section {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--ink-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 0.75rem 0.75rem 0.25rem;
-    }
-
     .nav-spacer { flex: 1; }
-
-    .nav-footer {
-      font-size: 0.72rem;
-      color: var(--ink-dim);
-      line-height: 1.6;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border);
-    }
+    .nav-footer { font-size: 0.7rem; color: var(--ink-dim); line-height: 1.6; padding-top: 0.875rem; border-top: 1px solid var(--border); }
     .nav-footer a { color: var(--blue); text-decoration: none; }
+    main { flex: 1; padding: 1.75rem 2.25rem; max-width: 960px; }
 
-    main {
-      flex: 1;
-      padding: 2rem 2.5rem;
-      max-width: 900px;
-    }
-
-    /* ── Header ── */
-    .page-header {
-      text-align: center;
-      padding: 1rem 0 2rem;
-      border-bottom: 2px solid var(--border);
-      margin-bottom: 2rem;
-    }
-    .page-header h1 {
-      font-family: var(--font-ser);
-      font-size: 2rem;
-      color: var(--ink);
-      margin-bottom: 0.35rem;
-    }
-    .page-header p { color: var(--ink-mid); font-size: 0.95rem; }
-
-    /* ── Search ── */
-    .search-label {
-      font-family: var(--font-ser);
-      font-size: 1.2rem;
-      text-align: center;
-      margin-bottom: 0.75rem;
-      color: var(--ink);
-    }
-    .search-row {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-    .search-row input {
-      flex: 1;
-      padding: 0.7rem 1rem;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
-      font-family: var(--font-ui);
-      background: white;
-      color: var(--ink);
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .search-row input:focus { border-color: var(--gold); }
-    .btn-primary {
-      padding: 0.7rem 1.4rem;
-      background: var(--gold);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: var(--font-ui);
-      transition: opacity 0.15s;
-      white-space: nowrap;
-    }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.88rem;
-      color: var(--ink-mid);
-    }
-    .toggle-row input[type=checkbox] { accent-color: var(--green); width: 16px; height: 16px; }
-
-    /* ── Status / Loader ── */
-    .status-bar {
-      background: #fef3c7;
-      border: 1px solid #fde68a;
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 1.25rem;
-      font-size: 0.88rem;
-      color: #92400e;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .status-bar.error { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
-    .status-bar.success { background: #dcfce7; border-color: #86efac; color: #166534; }
-    .spinner {
-      width: 16px; height: 16px;
-      border: 2px solid #fde68a;
-      border-top-color: #b45309;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Result summary ── */
-    .result-summary {
-      font-size: 0.87rem;
-      color: var(--ink-dim);
-      margin-bottom: 1.25rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    /* ── Badges ── */
-    .badge {
-      display: inline-block;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 999px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-right: 0.4rem;
-    }
-    .badge-ot { background: #fef3c7; color: #92400e; }
-    .badge-nt { background: #dbeafe; color: #1e3a8a; }
-
-    /* ── Verse card ── */
-    .verse-card {
-      background: var(--paper);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--gold);
-      border-radius: 8px;
-      padding: 0.9rem 1.2rem;
-      margin-bottom: 0.8rem;
-      box-shadow: 0 1px 4px var(--shadow);
-    }
-    .verse-card.nt { border-left-color: var(--blue); }
-    .verse-ref {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--ink-dim);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 0.3rem;
-    }
-    .verse-text {
-      font-family: var(--font-ser);
-      font-size: 1rem;
-      line-height: 1.75;
-      color: var(--ink);
-    }
-    .verse-text mark {
-      background: #fef08a;
-      color: var(--ink);
-      border-radius: 2px;
-      padding: 0 1px;
-    }
-
-    /* ── Commentary card ── */
-    .commentary-section { margin-bottom: 1.5rem; }
-    .commentary-section summary {
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: var(--green);
-      margin-bottom: 0.75rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #c8dfc8;
-      list-style: none;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .commentary-section summary::before { content: "▶"; font-size: 0.65rem; }
-    .commentary-section[open] summary::before { content: "▼"; }
-    .commentary-card {
-      background: #f0f7f0;
-      border: 1px solid #c8dfc8;
-      border-left: 4px solid var(--green);
-      border-radius: 8px;
-      padding: 0.9rem 1.2rem;
-      margin-bottom: 0.75rem;
-      box-shadow: 0 1px 4px var(--shadow);
-    }
-    .commentary-author {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--green);
-      margin-bottom: 0.3rem;
-    }
-    .commentary-text {
-      font-family: var(--font-ser);
-      font-size: 0.93rem;
-      line-height: 1.7;
-      color: var(--ink-mid);
-      font-style: italic;
-    }
-
-    /* ── Browse ── */
-    .browse-controls {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .browse-controls select {
-      padding: 0.55rem 0.85rem;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: var(--font-ui);
-      background: white;
-      color: var(--ink);
-      cursor: pointer;
-      outline: none;
-    }
-    .browse-controls select:focus { border-color: var(--gold); }
-
-    /* ── Sources ── */
-    .source-card {
-      background: var(--paper);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 0.8rem;
-    }
-    .source-card h3 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.25rem; }
-    .source-card p { font-size: 0.85rem; color: var(--ink-mid); }
-    .source-approved {
-      display: inline-block;
-      background: #dcfce7; color: #166534;
-      font-size: 0.7rem; font-weight: 700;
-      padding: 2px 8px; border-radius: 999px;
-      margin-left: 0.5rem;
-    }
-
-    /* ── Sections (pages) ── */
+    /* ── Page sections ── */
     .page { display: none; }
     .page.active { display: block; }
 
-    /* ── Quick topics ── */
-    .topic-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      justify-content: center;
-    }
-    .chip {
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 999px;
-      padding: 0.35rem 0.9rem;
-      font-size: 0.82rem;
-      color: var(--ink-mid);
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: var(--font-ui);
-    }
+    /* ── Shared header ── */
+    .page-header { text-align: center; padding: 0.75rem 0 1.75rem; border-bottom: 2px solid var(--border); margin-bottom: 1.75rem; }
+    .page-header h1 { font-family: var(--font-ser); font-size: 1.9rem; color: var(--ink); margin-bottom: 0.3rem; }
+    .page-header p { color: var(--ink-mid); font-size: 0.92rem; }
+
+    /* ── Status bar ── */
+    .status-bar { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 0.65rem 0.875rem; margin-bottom: 1.1rem; font-size: 0.85rem; color: #92400e; display: flex; align-items: center; gap: 0.5rem; }
+    .status-bar.error { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .status-bar.success { background: #dcfce7; border-color: #86efac; color: #166534; }
+    .spinner { width: 15px; height: 15px; border: 2px solid #fde68a; border-top-color: #b45309; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Buttons ── */
+    .btn-primary { padding: 0.65rem 1.25rem; background: var(--gold); color: white; border: none; border-radius: 8px; font-size: 0.92rem; font-weight: 600; cursor: pointer; font-family: var(--font-ui); transition: opacity 0.15s; white-space: nowrap; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost { padding: 0.45rem 0.875rem; background: none; border: 1.5px solid var(--border); border-radius: 6px; font-size: 0.82rem; color: var(--ink-mid); cursor: pointer; font-family: var(--font-ui); transition: all 0.15s; }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-ghost.active { background: #fef3c7; border-color: var(--gold); color: #92400e; font-weight: 600; }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; font-size: 0.63rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; letter-spacing: 0.05em; text-transform: uppercase; margin-right: 0.4rem; }
+    .badge-ot { background: #fef3c7; color: #92400e; }
+    .badge-nt { background: #dbeafe; color: #1e3a8a; }
+
+    /* ── Verse cards ── */
+    .verse-card { background: var(--paper); border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 0.85rem 1.1rem; margin-bottom: 0.75rem; box-shadow: 0 1px 4px var(--shadow); }
+    .verse-card.nt { border-left-color: var(--blue); }
+    .verse-ref { font-size: 0.73rem; font-weight: 700; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.3rem; }
+    .verse-text { font-family: var(--font-ser); font-size: 0.98rem; line-height: 1.75; color: var(--ink); }
+    .verse-text mark { background: #fef08a; color: var(--ink); border-radius: 2px; padding: 0 1px; }
+
+    /* ── Commentary ── */
+    details.comm-section { margin-bottom: 1.4rem; }
+    details.comm-section summary { cursor: pointer; font-weight: 600; font-size: 0.88rem; color: var(--green); padding: 0.45rem 0; border-bottom: 1px solid #c8dfc8; list-style: none; display: flex; align-items: center; gap: 0.4rem; }
+    details.comm-section summary::before { content: "▶"; font-size: 0.6rem; }
+    details.comm-section[open] summary::before { content: "▼"; }
+    .commentary-card { background: #f0f7f0; border: 1px solid #c8dfc8; border-left: 4px solid var(--green); border-radius: 8px; padding: 0.85rem 1.1rem; margin: 0.6rem 0 0.75rem; }
+    .commentary-author { font-size: 0.73rem; font-weight: 700; color: var(--green); margin-bottom: 0.25rem; }
+    .commentary-text { font-family: var(--font-ser); font-size: 0.9rem; line-height: 1.7; color: var(--ink-mid); font-style: italic; }
+
+    /* ── Search page ── */
+    .search-label { font-family: var(--font-ser); font-size: 1.15rem; text-align: center; margin-bottom: 0.65rem; color: var(--ink); }
+    .search-row { display: flex; gap: 0.5rem; margin-bottom: 0.65rem; }
+    .search-row input, .browse-controls select { flex: 1; padding: 0.65rem 0.875rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: var(--font-ui); background: white; color: var(--ink); outline: none; transition: border-color 0.15s; }
+    .search-row input:focus, .browse-controls select:focus { border-color: var(--gold); }
+    .toggle-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: var(--ink-mid); }
+    .toggle-row input[type=checkbox] { accent-color: var(--green); width: 15px; height: 15px; }
+    .result-summary { font-size: 0.84rem; color: var(--ink-dim); margin-bottom: 1.1rem; padding-bottom: 0.65rem; border-bottom: 1px solid var(--border); }
+    .topic-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; justify-content: center; }
+    .chip { background: white; border: 1.5px solid var(--border); border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.79rem; color: var(--ink-mid); cursor: pointer; transition: all 0.15s; font-family: var(--font-ui); }
     .chip:hover { border-color: var(--gold); color: var(--gold); background: #fef3c7; }
 
+    /* ── Browse ── */
+    .browse-controls { display: flex; gap: 0.875rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .browse-controls select { flex: unset; }
+
+    /* ══════════════════════════════════════════
+       GRAPH PAGE
+    ══════════════════════════════════════════ */
+    .graph-container { display: flex; gap: 1rem; height: calc(100vh - 180px); min-height: 560px; }
+    #graphSvg { flex: 1; background: #0d1117; border-radius: 12px; border: 1px solid #2a2a3a; cursor: grab; }
+    #graphSvg:active { cursor: grabbing; }
+    .graph-detail {
+      width: 280px; flex-shrink: 0; background: var(--paper); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .graph-detail h3 { font-family: var(--font-ser); font-size: 1rem; color: var(--ink); }
+    .graph-detail .detail-type { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+    .graph-detail .detail-ref { font-size: 0.82rem; color: var(--blue); font-style: italic; }
+    .graph-detail .detail-desc { font-family: var(--font-ser); font-size: 0.88rem; line-height: 1.65; color: var(--ink-mid); }
+    .graph-detail .detail-connections { font-size: 0.8rem; color: var(--ink-dim); }
+    .graph-detail .conn-chip { display: inline-block; background: #f4f0e8; border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; margin: 2px; font-size: 0.75rem; cursor: pointer; }
+    .graph-detail .conn-chip:hover { background: #fef3c7; }
+    .graph-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: #556; font-size: 0.88rem; text-align: center; padding: 1rem; }
+    .graph-legend { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.875rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--ink-dim); }
+    .legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .graph-toolbar { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .graph-toolbar span { font-size: 0.78rem; color: var(--ink-dim); margin-right: auto; }
+
+    /* ══════════════════════════════════════════
+       READING PLAN PAGE
+    ══════════════════════════════════════════ */
+    .track-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.875rem; margin-bottom: 1.5rem; }
+    .track-card { background: var(--paper); border: 2px solid var(--border); border-radius: 10px; padding: 1rem; cursor: pointer; transition: all 0.18s; }
+    .track-card:hover { border-color: var(--gold); }
+    .track-card.active { border-color: var(--gold); background: #fef9ec; }
+    .track-card h3 { font-family: var(--font-ser); font-size: 1rem; margin-bottom: 0.2rem; }
+    .track-card .track-sub { font-size: 0.78rem; color: var(--ink-dim); margin-bottom: 0.4rem; }
+    .track-card p { font-size: 0.82rem; color: var(--ink-mid); line-height: 1.5; }
+    .progress-wrap { margin-bottom: 1.25rem; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--ink-dim); margin-bottom: 0.35rem; }
+    .progress-bar-bg { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--gold); border-radius: 999px; transition: width 0.4s; }
+    .day-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .day-item { background: var(--paper); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.75rem; transition: background 0.15s; }
+    .day-item.done { background: #f0fdf4; border-color: #86efac; }
+    .day-item input[type=checkbox] { accent-color: var(--green); width: 17px; height: 17px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+    .day-num { font-size: 0.7rem; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; min-width: 40px; margin-top: 2px; }
+    .day-content h4 { font-size: 0.92rem; font-weight: 600; color: var(--ink); margin-bottom: 0.15rem; }
+    .day-content .day-passages { font-size: 0.8rem; color: var(--blue); margin-bottom: 0.15rem; }
+    .day-content .day-theme { font-size: 0.78rem; color: var(--ink-dim); font-style: italic; }
+    .btn-reset-plan { font-size: 0.75rem; color: var(--red); background: none; border: none; cursor: pointer; text-decoration: underline; }
+
+    /* ══════════════════════════════════════════
+       CHRIST IN SCRIPTURE PAGE
+    ══════════════════════════════════════════ */
+    .inner-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .inner-tab { padding: 0.45rem 1rem; border: 1.5px solid var(--border); border-radius: 6px; font-size: 0.84rem; color: var(--ink-mid); cursor: pointer; background: none; font-family: var(--font-ui); transition: all 0.15s; }
+    .inner-tab:hover { border-color: var(--gold); }
+    .inner-tab.active { background: #fef3c7; border-color: var(--gold); color: #92400e; font-weight: 600; }
+    .inner-section { display: none; }
+    .inner-section.active { display: block; }
+
+    /* Covenants timeline */
+    .covenant-timeline { position: relative; padding-left: 1.5rem; }
+    .covenant-timeline::before { content:''; position:absolute; left:6px; top:0; bottom:0; width:2px; background:linear-gradient(to bottom, var(--green), var(--purple), var(--blue)); border-radius:2px; }
+    .covenant-item { position: relative; margin-bottom: 1.1rem; }
+    .covenant-item::before { content:''; position:absolute; left:-1.25rem; top:14px; width:12px; height:12px; border-radius:50%; border:2px solid white; }
+    .covenant-card { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .covenant-header { padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+    .covenant-header:hover { background: #fef9ec; }
+    .covenant-number { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0; }
+    .covenant-header h3 { font-family: var(--font-ser); font-size: 0.95rem; flex: 1; }
+    .covenant-ref-badge { font-size: 0.73rem; color: var(--ink-dim); font-style: italic; }
+    .covenant-body { padding: 0 1rem 0.9rem; display: none; }
+    .covenant-body.open { display: block; }
+    .covenant-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; margin-top: 0.5rem; }
+    .covenant-field label { font-size: 0.68rem; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+    .covenant-field p { font-size: 0.85rem; color: var(--ink-mid); margin-top: 0.1rem; line-height: 1.5; }
+    .covenant-fulfillment { margin-top: 0.6rem; padding: 0.6rem 0.75rem; background: #f0f7f0; border-radius: 6px; border-left: 3px solid var(--green); }
+    .covenant-fulfillment p { font-size: 0.84rem; color: var(--ink-mid); font-style: italic; line-height: 1.55; }
+    .covenant-fulfillment label { font-size: 0.68rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.15rem; }
+
+    /* Types of Christ cards */
+    .types-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.875rem; }
+    .type-card { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; border-top: 4px solid #d97706; }
+    .type-card h3 { font-family: var(--font-ser); font-size: 1rem; margin-bottom: 0.4rem; color: var(--ink); }
+    .type-refs { font-size: 0.75rem; color: var(--blue); margin-bottom: 0.5rem; }
+    .type-comparison { font-size: 0.84rem; line-height: 1.6; color: var(--ink-mid); margin-bottom: 0.4rem; }
+    .type-contrast { font-size: 0.82rem; line-height: 1.55; color: var(--ink-dim); font-style: italic; border-top: 1px solid var(--border); padding-top: 0.4rem; }
+
+    /* Prophecies */
+    .prophecy-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .proph-card { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .proph-header { display: grid; grid-template-columns: 1fr 1fr; gap: 0; cursor: pointer; }
+    .proph-col { padding: 0.75rem 1rem; }
+    .proph-col:first-child { border-right: 1px solid var(--border); background: #fffbf0; }
+    .proph-col:last-child { background: #f0f4ff; }
+    .proph-col .proph-label { font-size: 0.67rem; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+    .proph-col .proph-ref { font-size: 0.82rem; font-weight: 600; color: var(--ink); margin-bottom: 0.2rem; }
+    .proph-col .proph-text { font-family: var(--font-ser); font-size: 0.82rem; line-height: 1.6; color: var(--ink-mid); font-style: italic; }
+    .proph-theme { padding: 0.45rem 1rem; background: #fef3c7; font-size: 0.78rem; color: #92400e; }
+    .proph-title { padding: 0.5rem 1rem; font-size: 0.84rem; font-weight: 600; color: var(--ink); background: var(--paper); border-bottom: 1px solid var(--border); }
+
     /* ── Mobile ── */
-    @media (max-width: 680px) {
+    @media (max-width: 700px) {
       nav { display: none; }
       main { padding: 1rem; }
+      .graph-container { flex-direction: column; }
+      .graph-detail { width: 100%; height: 200px; }
     }
   </style>
 </head>
 <body>
-
 <div class="layout">
 
-  <!-- ── Sidebar ── -->
-  <nav>
-    <div class="nav-logo">✝ Intro to the Bible</div>
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<nav>
+  <div class="nav-logo">✝ Intro to the Bible</div>
 
-    <div class="nav-section">Search</div>
-    <button class="nav-btn active" data-page="qa">Q&amp;A — What does it say?</button>
+  <div class="nav-section">Explore</div>
+  <button class="nav-btn active" data-page="qa">Q&amp;A — What does it say?</button>
+  <button class="nav-btn" data-page="graph">Scripture Graph</button>
 
-    <div class="nav-section">Read</div>
-    <button class="nav-btn" data-page="browse">Browse by Book &amp; Chapter</button>
+  <div class="nav-section">Read</div>
+  <button class="nav-btn" data-page="plan">Reading Plan</button>
+  <button class="nav-btn" data-page="browse">Browse by Book</button>
 
-    <div class="nav-section">About</div>
-    <button class="nav-btn" data-page="sources">Approved Sources</button>
+  <div class="nav-section">Study</div>
+  <button class="nav-btn" data-page="christ">Christ in Scripture</button>
+  <button class="nav-btn" data-page="sources">Approved Sources</button>
 
-    <div class="nav-spacer"></div>
-    <div class="nav-footer">
-      KJV · Public Domain<br/>
-      <a href="https://github.com/Kwang316/christology-bible-app" target="_blank">View on GitHub</a>
+  <div class="nav-spacer"></div>
+  <div class="nav-footer">
+    KJV · Public Domain<br/>
+    <a href="https://github.com/Kwang316/christology-bible-app" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main>
+  <div id="kjvStatus" class="status-bar" style="display:none"></div>
+
+  <!-- ══ Q&A ══ -->
+  <section class="page active" id="page-qa">
+    <div class="page-header">
+      <h1>✝ Intro to the Bible</h1>
+      <p>Ask a question — receive direct scripture quotes in canonical order</p>
     </div>
-  </nav>
+    <div class="search-label">What does the Bible say about…?</div>
+    <div class="search-row">
+      <input type="text" id="queryInput" placeholder="e.g. love, math, prayer, forgiveness, wisdom…" />
+      <button class="btn-primary" id="searchBtn" onclick="doSearch()">Search</button>
+    </div>
+    <div class="toggle-row">
+      <input type="checkbox" id="showCommentary" checked />
+      <label for="showCommentary">Include approved commentary excerpts</label>
+    </div>
+    <div class="topic-chips" id="topicChips"></div>
+    <div id="qaResults"></div>
+  </section>
 
-  <!-- ── Main ── -->
-  <main>
-
-    <!-- KJV status bar -->
-    <div id="kjvStatus" class="status-bar" style="display:none"></div>
-
-    <!-- ══════════════════════════════════════ -->
-    <!-- PAGE: Q&A                             -->
-    <!-- ══════════════════════════════════════ -->
-    <section class="page active" id="page-qa">
-
-      <div class="page-header">
-        <h1>✝ Intro to the Bible</h1>
-        <p>Ask a question — receive direct scripture quotes in canonical order</p>
+  <!-- ══ GRAPH ══ -->
+  <section class="page" id="page-graph">
+    <div class="page-header">
+      <h1>Scripture Graph</h1>
+      <p>A theology map — covenants, types of Christ, prophecies, and themes</p>
+    </div>
+    <div class="graph-legend" id="graphLegend"></div>
+    <div class="graph-toolbar">
+      <span>Click a node to inspect · Scroll to zoom · Drag to pan</span>
+      <button class="btn-ghost" onclick="resetGraph()">Reset View</button>
+      <button class="btn-ghost" onclick="centerOnJesus()">Center on Christ</button>
+    </div>
+    <div class="graph-container">
+      <svg id="graphSvg"></svg>
+      <div class="graph-detail" id="graphDetail">
+        <div class="graph-placeholder">
+          Click any node in the graph to see details, scripture references, and connections.
+        </div>
       </div>
+    </div>
+  </section>
 
-      <div class="search-label">What does the Bible say about…?</div>
+  <!-- ══ READING PLAN ══ -->
+  <section class="page" id="page-plan">
+    <div class="page-header">
+      <h1>Reading Plan</h1>
+      <p>For someone new to Scripture — where to start and how to continue</p>
+    </div>
+    <div class="track-cards" id="trackCards"></div>
+    <div class="progress-wrap" id="planProgress" style="display:none"></div>
+    <div id="planDayList"></div>
+  </section>
 
-      <div class="search-row">
-        <input type="text" id="queryInput" placeholder="e.g. love, math, prayer, forgiveness, wisdom…" />
-        <button class="btn-primary" id="searchBtn" onclick="doSearch()">Search</button>
-      </div>
+  <!-- ══ BROWSE ══ -->
+  <section class="page" id="page-browse">
+    <h2 style="font-family:var(--font-ser);margin-bottom:1.25rem">Browse by Book &amp; Chapter</h2>
+    <div class="browse-controls">
+      <select id="bookSelect" onchange="onBookChange()"></select>
+      <select id="chapterSelect" onchange="renderBrowse()"></select>
+    </div>
+    <div id="browseResults"></div>
+  </section>
 
-      <div class="toggle-row">
-        <input type="checkbox" id="showCommentary" checked />
-        <label for="showCommentary">Include approved commentary excerpts</label>
-      </div>
+  <!-- ══ CHRIST IN SCRIPTURE ══ -->
+  <section class="page" id="page-christ">
+    <div class="page-header">
+      <h1>Christ in Scripture</h1>
+      <p>The covenants, types, and prophecies that point to Jesus — from Genesis to Revelation</p>
+    </div>
+    <div class="inner-tabs">
+      <button class="inner-tab active" data-inner="covenants">📜 Covenants</button>
+      <button class="inner-tab" data-inner="types">🔑 Types of Christ</button>
+      <button class="inner-tab" data-inner="prophecies">✦ Messianic Prophecies</button>
+    </div>
+    <div class="inner-section active" id="inner-covenants">
+      <p style="font-size:0.84rem;color:var(--ink-dim);margin-bottom:1.25rem">God's seven covenants form the backbone of redemptive history — each pointing forward to their ultimate fulfillment in Jesus Christ.</p>
+      <div class="covenant-timeline" id="covenantList"></div>
+    </div>
+    <div class="inner-section" id="inner-types">
+      <p style="font-size:0.84rem;color:var(--ink-dim);margin-bottom:1.25rem">A "type" is an OT person, event, or institution that God designed as a foreshadowing of Christ. The NT explicitly identifies these connections.</p>
+      <div class="types-grid" id="typesList"></div>
+    </div>
+    <div class="inner-section" id="inner-prophecies">
+      <p style="font-size:0.84rem;color:var(--ink-dim);margin-bottom:1.25rem">Over 300 specific prophecies about the Messiah were written centuries before Jesus' birth. Here are the most significant, shown side by side with their fulfillment.</p>
+      <div class="prophecy-list" id="propheciesList"></div>
+    </div>
+  </section>
 
-      <div class="topic-chips" id="topicChips"></div>
+  <!-- ══ SOURCES ══ -->
+  <section class="page" id="page-sources">
+    <h2 style="font-family:var(--font-ser);margin-bottom:0.5rem">Approved Commentary Sources</h2>
+    <p style="color:var(--ink-dim);font-size:0.85rem;margin-bottom:1.25rem">These authors are quoted alongside Bible verses in Q&amp;A results. Only <code>approved: true</code> entries in <code>sources/manifest.json</code> appear here.</p>
+    <div id="sourcesList"></div>
+  </section>
 
-      <div id="qaResults"></div>
-    </section>
-
-    <!-- ══════════════════════════════════════ -->
-    <!-- PAGE: BROWSE                          -->
-    <!-- ══════════════════════════════════════ -->
-    <section class="page" id="page-browse">
-      <h2 style="font-family:var(--font-ser);margin-bottom:1.5rem">Browse by Book &amp; Chapter</h2>
-      <div class="browse-controls">
-        <select id="bookSelect" onchange="onBookChange()"></select>
-        <select id="chapterSelect" onchange="renderBrowse()"></select>
-      </div>
-      <div id="browseResults"></div>
-    </section>
-
-    <!-- ══════════════════════════════════════ -->
-    <!-- PAGE: SOURCES                         -->
-    <!-- ══════════════════════════════════════ -->
-    <section class="page" id="page-sources">
-      <h2 style="font-family:var(--font-ser);margin-bottom:0.5rem">Approved Commentary Sources</h2>
-      <p style="color:var(--ink-dim);font-size:0.88rem;margin-bottom:1.5rem">
-        These authors are quoted alongside Bible verses in search results.
-        Only sources marked <strong>approved</strong> in <code>sources/manifest.json</code> appear here.
-      </p>
-      <div id="sourcesList"></div>
-    </section>
-
-  </main>
-</div>
+</main>
+</div><!-- end layout -->
 
 <script>
 // ════════════════════════════════════════════════════════════
-// CONSTANTS
+// KJV CONSTANTS
 // ════════════════════════════════════════════════════════════
-
 const KJV_URL = 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json';
 const STORAGE_KEY = 'kjv_v2';
-
 const CANONICAL_ORDER = [
-  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy",
-  "Joshua","Judges","Ruth","1 Samuel","2 Samuel",
-  "1 Kings","2 Kings","1 Chronicles","2 Chronicles",
-  "Ezra","Nehemiah","Esther","Job","Psalms","Proverbs",
-  "Ecclesiastes","Song of Solomon","Isaiah","Jeremiah",
-  "Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
-  "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah",
-  "Haggai","Zechariah","Malachi",
-  "Matthew","Mark","Luke","John","Acts","Romans",
-  "1 Corinthians","2 Corinthians","Galatians","Ephesians",
-  "Philippians","Colossians","1 Thessalonians","2 Thessalonians",
-  "1 Timothy","2 Timothy","Titus","Philemon","Hebrews",
-  "James","1 Peter","2 Peter","1 John","2 John","3 John",
-  "Jude","Revelation"
+  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
+  "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra",
+  "Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon",
+  "Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+  "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
+  "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians",
+  "Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians",
+  "1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter",
+  "1 John","2 John","3 John","Jude","Revelation"
 ];
-
-const BOOK_ORDER = Object.fromEntries(CANONICAL_ORDER.map((b, i) => [b, i]));
-
+const BOOK_ORDER = Object.fromEntries(CANONICAL_ORDER.map((b,i)=>[b,i]));
 const TOPIC_KEYWORDS = {
-  "math":        ["number","count","measure","multiply","sum","numbered","counted","measured"],
-  "mathematics": ["number","count","measure","multiply","numbered","counted","measured"],
-  "numbers":     ["number","numbered","count","countless"],
-  "love":        ["love","charity","loveth","lovest","beloved","lovingkindness"],
-  "hate":        ["hate","hateth","hated","despise","abhor"],
-  "fear":        ["fear","afraid","terror","dread","fearful","feared"],
-  "wisdom":      ["wisdom","wise","understanding","knowledge","prudent"],
-  "prayer":      ["pray","prayer","praying","supplication","intercede","petition"],
-  "faith":       ["faith","believe","belief","trust","faithful"],
-  "hope":        ["hope","hopeth","expectation"],
-  "money":       ["money","silver","gold","riches","wealth","mammon","covet"],
-  "sin":         ["sin","sinned","transgression","iniquity","wickedness","trespass"],
-  "forgiveness": ["forgive","forgiven","pardon","merciful","mercy","remission"],
-  "salvation":   ["salvation","save","saved","redeem","redeemed","deliverance"],
-  "heaven":      ["heaven","paradise","glory","kingdom"],
-  "hell":        ["hell","fire","destruction","damnation"],
-  "marriage":    ["marriage","married","husband","wife","wed"],
-  "children":    ["children","child","son","daughter","offspring","seed"],
-  "work":        ["work","labor","labour","diligent","slothful","toil"],
-  "truth":       ["truth","true","honest","faithful","verity"],
-  "peace":       ["peace","peaceable","rest","quiet"],
-  "joy":         ["joy","rejoice","rejoiceth","glad","delight"],
-  "anger":       ["anger","wrath","furious","rage","indignation"],
-  "humility":    ["humble","humility","meek","lowly"],
-  "pride":       ["pride","proud","haughty","arrogant","boast"],
-  "death":       ["death","die","died","mortality","perish"],
-  "life":        ["life","live","living","breath","soul"],
-  "suffering":   ["suffering","affliction","tribulation","sorrow","grief","pain"],
-  "healing":     ["heal","healed","healing","restore","cure","health"],
-  "creation":    ["created","creation","heavens","beginning","formed"],
-  "light":       ["light","lamp","shine","brightness"],
-  "darkness":    ["darkness","dark","shadow","night"],
-  "leadership":  ["leader","ruler","king","authority","govern","shepherd"],
-  "justice":     ["justice","righteous","judgment","equity"],
-  "generosity":  ["give","generous","charity","tithe","offering","gift"],
-  "patience":    ["patient","patience","long-suffering","endure","persevere"],
-  "courage":     ["courage","courageous","bold","strong","valiant"],
-  "obedience":   ["obey","obedience","commandment","law","statute"],
-  "family":      ["family","father","mother","brother","sister","household"],
-  "friendship":  ["friend","friendship","companion","fellowship","neighbor"],
-  "strength":    ["strength","strong","might","power","force"],
-  "time":        ["time","season","appointed","eternity"],
-  "trust":       ["trust","rely","confidence","assurance"],
-  "god":         ["God","LORD","Almighty","Creator"],
-  "jesus":       ["Jesus","Christ","Messiah","Saviour","Redeemer"],
+  "math":["number","count","measure","multiply","sum","numbered","counted","measured"],
+  "mathematics":["number","count","measure","multiply","numbered","counted","measured"],
+  "love":["love","charity","loveth","lovest","beloved","lovingkindness"],
+  "hate":["hate","hateth","hated","despise","abhor"],
+  "fear":["fear","afraid","terror","dread","fearful","feared"],
+  "wisdom":["wisdom","wise","understanding","knowledge","prudent"],
+  "prayer":["pray","prayer","praying","supplication","intercede","petition"],
+  "faith":["faith","believe","belief","trust","faithful"],
+  "hope":["hope","hopeth","expectation"],
+  "money":["money","silver","gold","riches","wealth","mammon","covet"],
+  "sin":["sin","sinned","transgression","iniquity","wickedness","trespass"],
+  "forgiveness":["forgive","forgiven","pardon","merciful","mercy","remission"],
+  "salvation":["salvation","save","saved","redeem","redeemed","deliverance"],
+  "heaven":["heaven","paradise","glory","kingdom"],
+  "hell":["hell","fire","destruction","damnation"],
+  "marriage":["marriage","married","husband","wife","wed"],
+  "children":["children","child","son","daughter","offspring","seed"],
+  "work":["work","labor","labour","diligent","slothful","toil"],
+  "truth":["truth","true","honest","faithful","verity"],
+  "peace":["peace","peaceable","rest","quiet"],
+  "joy":["joy","rejoice","rejoiceth","glad","delight"],
+  "anger":["anger","wrath","furious","rage","indignation"],
+  "humility":["humble","humility","meek","lowly"],
+  "pride":["pride","proud","haughty","arrogant","boast"],
+  "death":["death","die","died","mortality","perish"],
+  "life":["life","live","living","breath","soul"],
+  "suffering":["suffering","affliction","tribulation","sorrow","grief","pain"],
+  "healing":["heal","healed","healing","restore","cure","health"],
+  "creation":["created","creation","heavens","beginning","formed"],
+  "light":["light","lamp","shine","brightness"],
+  "darkness":["darkness","dark","shadow","night"],
+  "leadership":["leader","ruler","king","authority","govern","shepherd"],
+  "justice":["justice","righteous","judgment","equity"],
+  "generosity":["give","generous","charity","tithe","offering","gift"],
+  "patience":["patient","patience","endure","persevere"],
+  "courage":["courage","courageous","bold","strong","valiant"],
+  "obedience":["obey","obedience","commandment","law","statute"],
+  "family":["family","father","mother","brother","sister","household"],
+  "friendship":["friend","friendship","companion","fellowship","neighbor"],
+  "strength":["strength","strong","might","power","force"],
+  "trust":["trust","rely","confidence","assurance"],
+  "god":["God","LORD","Almighty","Creator"],
+  "jesus":["Jesus","Christ","Messiah","Saviour","Redeemer"],
 };
-
-const FEATURED_TOPICS = [
-  "love","faith","prayer","wisdom","forgiveness",
-  "peace","hope","salvation","courage","truth"
-];
+const FEATURED_TOPICS = ["love","faith","prayer","wisdom","forgiveness","peace","hope","salvation","courage","truth"];
 
 // ════════════════════════════════════════════════════════════
-// KJV DATA
+// KJV LOADING
 // ════════════════════════════════════════════════════════════
+let kjvData = null;
 
-let kjvData = null; // flat array: {book, bookIndex, chapter, verse, text}
-
-function setStatus(msg, type = 'loading') {
+function setStatus(msg, type='loading') {
   const el = document.getElementById('kjvStatus');
-  if (!msg) { el.style.display = 'none'; return; }
-  el.style.display = 'flex';
-  el.className = 'status-bar' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
-  el.innerHTML = type === 'loading'
+  if (!msg) { el.style.display='none'; return; }
+  el.style.display='flex';
+  el.className = 'status-bar' + (type==='error'?' error': type==='success'?' success':'');
+  el.innerHTML = type==='loading'
     ? `<div class="spinner"></div><span>${msg}</span>`
     : `<span>${msg}</span>`;
 }
 
 async function loadKJV() {
-  // Try localStorage cache first
   try {
     const cached = localStorage.getItem(STORAGE_KEY);
-    if (cached) {
-      kjvData = JSON.parse(cached);
-      setStatus(null);
-      return;
-    }
-  } catch (e) { /* quota or parse error — fall through */ }
-
-  setStatus('Loading Bible text… (first visit only, ~3 MB — please wait)');
+    if (cached) { kjvData = JSON.parse(cached); setStatus(null); return; }
+  } catch(e) {}
+  setStatus('Loading Bible text… first visit only (~3 MB). Please wait.');
   try {
     const res = await fetch(KJV_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const raw = await res.json();
     kjvData = parseKJV(raw);
-    // Try to cache — might fail if storage is full
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(kjvData)); } catch (_) {}
-    setStatus('Bible text ready.', 'success');
-    setTimeout(() => setStatus(null), 2000);
-  } catch (e) {
-    setStatus(`Could not load Bible text: ${e.message}. Check your internet connection and refresh.`, 'error');
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(kjvData)); } catch(_) {}
+    setStatus('Bible text ready.','success');
+    setTimeout(()=>setStatus(null), 2000);
+  } catch(e) {
+    setStatus(`Could not load Bible text: ${e.message}. Check your connection and refresh.`,'error');
   }
 }
 
 function parseKJV(raw) {
-  // raw: [{name, chapters: [[v1text, v2text,...], ...]}, ...]
   const verses = [];
   raw.forEach((bookObj, bi) => {
-    const bookName = CANONICAL_ORDER[bi] || bookObj.name || bookObj.book || `Book ${bi+1}`;
-    (bookObj.chapters || []).forEach((chapter, ci) => {
+    const bookName = CANONICAL_ORDER[bi] || bookObj.name || `Book ${bi+1}`;
+    (bookObj.chapters||[]).forEach((chapter, ci) => {
       chapter.forEach((text, vi) => {
-        verses.push({
-          book: bookName,
-          bookIndex: bi,
-          chapter: ci + 1,
-          verse: vi + 1,
-          text: String(text).trim(),
-        });
+        verses.push({ book:bookName, bookIndex:bi, chapter:ci+1, verse:vi+1, text:String(text).trim() });
       });
     });
   });
@@ -589,54 +458,44 @@ function parseKJV(raw) {
 // ════════════════════════════════════════════════════════════
 // SEARCH ENGINE
 // ════════════════════════════════════════════════════════════
-
 function expandQuery(topic) {
   const t = topic.trim().toLowerCase();
-  // Exact match
   if (TOPIC_KEYWORDS[t]) return TOPIC_KEYWORDS[t];
-  // Partial match
   for (const [key, kws] of Object.entries(TOPIC_KEYWORDS)) {
     if (t.includes(key) || key.includes(t)) return kws;
   }
-  // Fallback: meaningful words from the query
   const stop = new Set(['what','does','the','bible','say','about','is','are','in','a','an','and','or','how']);
   return t.split(/\W+/).filter(w => w.length > 2 && !stop.has(w));
 }
 
-function searchKJV(keywords, maxResults = 60) {
+function searchKJV(keywords, maxResults=60) {
   if (!kjvData) return [];
-  const patterns = keywords.map(kw =>
-    new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i')
-  );
+  const patterns = keywords.map(kw => new RegExp('\\b'+kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i'));
   const results = [];
   for (const v of kjvData) {
-    const matched = keywords.filter((_, i) => patterns[i].test(v.text));
-    if (matched.length) {
-      results.push({ ...v, matchedKeywords: matched });
-    }
-    if (results.length >= maxResults * 2) break; // over-collect then trim after sort
+    const matched = keywords.filter((_,i) => patterns[i].test(v.text));
+    if (matched.length) results.push({...v, matchedKeywords:matched});
+    if (results.length >= maxResults*2) break;
   }
-  // Already in canonical order from parseKJV; slice to maxResults
-  return results.slice(0, maxResults);
+  return results.slice(0,maxResults);
 }
 
 function highlight(text, keywords) {
   let out = escapeHtml(text);
   for (const kw of keywords) {
-    const re = new RegExp('\\b(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'gi');
-    out = out.replace(re, '<mark>$1</mark>');
+    const re = new RegExp('\\b('+kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')\\b','gi');
+    out = out.replace(re,'<mark>$1</mark>');
   }
   return out;
 }
 
 function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ════════════════════════════════════════════════════════════
 // COMMENTARY
 // ════════════════════════════════════════════════════════════
-
 let manifestCache = null;
 
 async function loadManifest() {
@@ -644,197 +503,773 @@ async function loadManifest() {
   try {
     const res = await fetch('sources/manifest.json');
     const data = await res.json();
-    manifestCache = (data.sources || []).filter(s => s.approved);
-  } catch (_) {
-    manifestCache = [];
-  }
+    manifestCache = (data.sources||[]).filter(s=>s.approved);
+  } catch(_) { manifestCache = []; }
   return manifestCache;
 }
 
-async function searchCommentary(keywords, maxPerSource = 3) {
+async function searchCommentary(keywords, maxPerSource=3) {
   const sources = await loadManifest();
   const results = [];
   for (const src of sources) {
     try {
       const res = await fetch(`sources/${src.file}`);
       const text = await res.text();
-      const paras = text.split(/\n{2,}/).map(p => p.trim()).filter(p => p.length > 40);
-      const patterns = keywords.map(kw =>
-        new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i')
-      );
+      const paras = text.split(/\n{2,}/).map(p=>p.trim()).filter(p=>p.length>40);
+      const patterns = keywords.map(kw=>new RegExp('\\b'+kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i'));
       let found = 0;
       for (const para of paras) {
         if (found >= maxPerSource) break;
-        if (patterns.some(p => p.test(para))) {
-          results.push({
-            author: src.author,
-            title: src.title,
-            year: src.year,
-            excerpt: para.length > 600 ? para.slice(0, 600) + '…' : para,
-          });
+        if (patterns.some(p=>p.test(para))) {
+          results.push({ author:src.author, title:src.title, year:src.year, excerpt:para.length>600?para.slice(0,600)+'…':para });
           found++;
         }
       }
-    } catch (_) { /* source file not found — skip */ }
+    } catch(_) {}
   }
   return results;
 }
 
 // ════════════════════════════════════════════════════════════
-// Q&A UI
+// Q&A PAGE
 // ════════════════════════════════════════════════════════════
-
 async function doSearch() {
   const query = document.getElementById('queryInput').value.trim();
   if (!query) return;
-  if (!kjvData) {
-    document.getElementById('qaResults').innerHTML =
-      '<div class="status-bar">Bible text is still loading — please wait a moment.</div>';
-    return;
-  }
-
+  if (!kjvData) { document.getElementById('qaResults').innerHTML='<div class="status-bar">Bible text still loading — please wait.</div>'; return; }
   const btn = document.getElementById('searchBtn');
-  btn.disabled = true;
-  btn.textContent = 'Searching…';
-
+  btn.disabled=true; btn.textContent='Searching…';
   const keywords = expandQuery(query);
   const results  = searchKJV(keywords);
   const showComm = document.getElementById('showCommentary').checked;
   const commentary = showComm ? await searchCommentary(keywords) : [];
-
-  btn.disabled = false;
-  btn.textContent = 'Search';
-
+  btn.disabled=false; btn.textContent='Search';
   const el = document.getElementById('qaResults');
-
-  if (!results.length) {
-    el.innerHTML = `<div class="status-bar">
-      No verses found for <strong>${escapeHtml(query)}</strong>.
-      Try a simpler keyword (e.g. "love", "wisdom", "fear").
-    </div>`;
-    return;
-  }
-
-  const otCount = results.filter(r => r.bookIndex < 39).length;
-  const ntCount = results.length - otCount;
-
-  let html = `<div class="result-summary">
-    <strong>${results.length}</strong> verses &mdash;
-    <strong>${otCount}</strong> Old Testament &middot; <strong>${ntCount}</strong> New Testament &middot;
-    Search terms: <em>${keywords.slice(0,6).join(', ')}</em>
-  </div>`;
-
+  if (!results.length) { el.innerHTML=`<div class="status-bar">No verses found for <strong>${escapeHtml(query)}</strong>. Try a simpler keyword.</div>`; return; }
+  const otC = results.filter(r=>r.bookIndex<39).length, ntC=results.length-otC;
+  let html = `<div class="result-summary"><strong>${results.length}</strong> verses &mdash; <strong>${otC}</strong> OT &middot; <strong>${ntC}</strong> NT &middot; terms: <em>${keywords.slice(0,6).join(', ')}</em></div>`;
   if (commentary.length) {
-    html += `<details class="commentary-section" open>
-      <summary>📖 Commentary (${commentary.length} excerpt${commentary.length > 1 ? 's' : ''})</summary>`;
-    for (const c of commentary) {
-      html += `<div class="commentary-card">
-        <div class="commentary-author">${escapeHtml(c.author)} — <em>${escapeHtml(c.title)}</em> (${c.year})</div>
-        <div class="commentary-text">${escapeHtml(c.excerpt)}</div>
-      </div>`;
-    }
+    html += `<details class="comm-section" open><summary>📖 Commentary (${commentary.length} excerpt${commentary.length>1?'s':''})</summary>`;
+    for (const c of commentary) html+=`<div class="commentary-card"><div class="commentary-author">${escapeHtml(c.author)} — <em>${escapeHtml(c.title)}</em> (${c.year})</div><div class="commentary-text">${escapeHtml(c.excerpt)}</div></div>`;
     html += `</details>`;
   }
-
-  html += `<h3 style="font-family:var(--font-ser);margin-bottom:1rem">Scripture — King James Version</h3>`;
-
+  html += `<h3 style="font-family:var(--font-ser);margin-bottom:0.875rem">Scripture — King James Version</h3>`;
   for (const r of results) {
-    const isOT  = r.bookIndex < 39;
-    const badge = isOT ? 'badge-ot' : 'badge-nt';
-    const label = isOT ? 'OT' : 'NT';
-    const card  = isOT ? 'verse-card' : 'verse-card nt';
-    const ref   = `${r.book} ${r.chapter}:${r.verse}`;
-    const text  = highlight(r.text, r.matchedKeywords);
-    html += `<div class="${card}">
-      <div class="verse-ref"><span class="badge ${badge}">${label}</span>${escapeHtml(ref)}</div>
-      <div class="verse-text">&ldquo;${text}&rdquo;</div>
-    </div>`;
+    const isOT=r.bookIndex<39, ref=`${r.book} ${r.chapter}:${r.verse}`;
+    html+=`<div class="verse-card${isOT?'':' nt'}"><div class="verse-ref"><span class="badge badge-${isOT?'ot':'nt'}">${isOT?'OT':'NT'}</span>${escapeHtml(ref)}</div><div class="verse-text">&ldquo;${highlight(r.text,r.matchedKeywords)}&rdquo;</div></div>`;
   }
-
   el.innerHTML = html;
 }
 
-// ════════════════════════════════════════════════════════════
-// BROWSE UI
-// ════════════════════════════════════════════════════════════
-
-function buildBrowseSelects() {
-  const bookSel = document.getElementById('bookSelect');
-  CANONICAL_ORDER.forEach(book => {
-    const opt = document.createElement('option');
-    opt.value = book;
-    opt.textContent = book;
-    bookSel.appendChild(opt);
+function buildChips() {
+  const el = document.getElementById('topicChips');
+  FEATURED_TOPICS.forEach(t => {
+    const c=document.createElement('button'); c.className='chip'; c.textContent=t;
+    c.onclick=()=>{ document.getElementById('queryInput').value=t; doSearch(); };
+    el.appendChild(c);
   });
+}
+document.getElementById('queryInput').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); });
+
+// ════════════════════════════════════════════════════════════
+// BROWSE PAGE
+// ════════════════════════════════════════════════════════════
+function buildBrowseSelects() {
+  const sel = document.getElementById('bookSelect');
+  CANONICAL_ORDER.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; sel.appendChild(o); });
   onBookChange();
 }
-
 function getChapterCount(book) {
-  if (!kjvData) return 1;
-  let max = 0;
-  for (const v of kjvData) {
-    if (v.book === book && v.chapter > max) max = v.chapter;
-  }
-  return max || 1;
+  if (!kjvData) return 50;
+  let max=0;
+  for (const v of kjvData) if(v.book===book && v.chapter>max) max=v.chapter;
+  return max||1;
 }
-
 function onBookChange() {
-  const book    = document.getElementById('bookSelect').value;
-  const chSel   = document.getElementById('chapterSelect');
-  const total   = kjvData ? getChapterCount(book) : 50;
-  chSel.innerHTML = '';
-  for (let i = 1; i <= total; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `Chapter ${i}`;
-    chSel.appendChild(opt);
-  }
+  const book=document.getElementById('bookSelect').value;
+  const sel=document.getElementById('chapterSelect');
+  sel.innerHTML='';
+  for (let i=1;i<=getChapterCount(book);i++) { const o=document.createElement('option'); o.value=i; o.textContent=`Chapter ${i}`; sel.appendChild(o); }
   renderBrowse();
 }
-
 function renderBrowse() {
-  const book    = document.getElementById('bookSelect').value;
-  const chapter = parseInt(document.getElementById('chapterSelect').value);
-  const el      = document.getElementById('browseResults');
-
-  if (!kjvData) {
-    el.innerHTML = '<div class="status-bar">Bible text is still loading — please wait.</div>';
-    return;
-  }
-
-  const verses = kjvData.filter(v => v.book === book && v.chapter === chapter);
-  if (!verses.length) { el.innerHTML = '<p>No verses found.</p>'; return; }
-
-  const isOT = BOOK_ORDER[book] < 39;
-  let html = `<h3 style="font-family:var(--font-ser);margin-bottom:1rem">${escapeHtml(book)} ${chapter} — KJV</h3>`;
-  for (const v of verses) {
-    html += `<div class="verse-card${isOT ? '' : ' nt'}">
-      <div class="verse-ref">${escapeHtml(book)} ${chapter}:${v.verse}</div>
-      <div class="verse-text">&ldquo;${escapeHtml(v.text)}&rdquo;</div>
-    </div>`;
-  }
-  el.innerHTML = html;
+  const book=document.getElementById('bookSelect').value;
+  const chapter=parseInt(document.getElementById('chapterSelect').value);
+  const el=document.getElementById('browseResults');
+  if (!kjvData) { el.innerHTML='<div class="status-bar">Bible text still loading…</div>'; return; }
+  const verses=kjvData.filter(v=>v.book===book&&v.chapter===chapter);
+  if (!verses.length) { el.innerHTML='<p>No verses found.</p>'; return; }
+  const isOT=BOOK_ORDER[book]<39;
+  let html=`<h3 style="font-family:var(--font-ser);margin-bottom:0.875rem">${escapeHtml(book)} ${chapter} — KJV</h3>`;
+  for (const v of verses) html+=`<div class="verse-card${isOT?'':' nt'}"><div class="verse-ref">${escapeHtml(book)} ${chapter}:${v.verse}</div><div class="verse-text">&ldquo;${escapeHtml(v.text)}&rdquo;</div></div>`;
+  el.innerHTML=html;
 }
 
 // ════════════════════════════════════════════════════════════
-// SOURCES UI
+// SOURCES PAGE
 // ════════════════════════════════════════════════════════════
-
 async function renderSources() {
   const sources = await loadManifest();
   const el = document.getElementById('sourcesList');
-  if (!sources.length) {
-    el.innerHTML = '<p style="color:var(--ink-dim)">No approved sources found in sources/manifest.json.</p>';
-    return;
+  if (!sources.length) { el.innerHTML='<p style="color:var(--ink-dim)">No approved sources found.</p>'; return; }
+  el.innerHTML = sources.map(s=>`<div style="background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem"><strong>${escapeHtml(s.author)}</strong> — <em>${escapeHtml(s.title)}</em> (${s.year})<br/><span style="font-size:0.8rem;color:var(--ink-dim)">${escapeHtml(s.description||'')}</span></div>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// GRAPH DATA
+// ════════════════════════════════════════════════════════════
+const NODE_COLORS = {
+  center:    '#dc2626',
+  covenant:  '#7c3aed',
+  christType:'#d97706',
+  prophecy:  '#0891b2',
+  theme:     '#1d4ed8',
+};
+const NODE_LABELS = {
+  center:    'Jesus Christ (Center)',
+  covenant:  'Covenant',
+  christType:'Type of Christ',
+  prophecy:  'Messianic Prophecy',
+  theme:     'Theme',
+};
+
+const GRAPH_NODES = [
+  // Center
+  { id:'jesus',      label:'Jesus\nChrist',     type:'center',     ref:'All Scripture', desc:'The fulfillment and center of all Scripture. Every covenant, type, and prophecy finds its "Yes" in Him (2 Cor 1:20).' },
+  // Covenants
+  { id:'c_edenic',   label:'Edenic',             type:'covenant',   ref:'Gen 1–2',       desc:'God blessed humanity with life, fruitfulness, and dominion. Required obedience; broken by the Fall. Christ restores all that was lost.' },
+  { id:'c_adamic',   label:'Adamic',             type:'covenant',   ref:'Gen 3',         desc:'After the Fall, God promised enmity between the serpent and the woman\'s seed — the first gospel promise (Gen 3:15, the "protevangelium").' },
+  { id:'c_noahic',   label:'Noahic',             type:'covenant',   ref:'Gen 9',         desc:'God promised never again to destroy the earth by flood. Unconditional; the rainbow is its sign. Ensures history continues until redemption is complete.' },
+  { id:'c_abrahamic',label:'Abrahamic',          type:'covenant',   ref:'Gen 12; 15; 17',desc:'God promised Abraham a great nation, a land, and that all families of the earth would be blessed through his seed. Fulfilled in Christ (Gal 3:16).' },
+  { id:'c_mosaic',   label:'Mosaic',             type:'covenant',   ref:'Ex 19–24',      desc:'The Law given at Sinai. Conditional on Israel\'s obedience. A tutor (Gal 3:24) that reveals sin\'s seriousness and our need for a mediator.' },
+  { id:'c_davidic',  label:'Davidic',            type:'covenant',   ref:'2 Sam 7',       desc:'God promised David an eternal throne and an heir whose kingdom would never end. Fulfilled in Jesus, the son of David, who reigns forever.' },
+  { id:'c_new',      label:'New\nCovenant',      type:'covenant',   ref:'Jer 31; Luke 22',desc:'Promised in Jeremiah 31:31-34; established by Christ\'s blood (Luke 22:20). God writes His law on hearts, forgives sin completely, and indwells by His Spirit.' },
+  // Types of Christ
+  { id:'t_adam',     label:'Adam',               type:'christType', ref:'Gen 2; Rom 5:14',   desc:'Federal head of the old humanity. As Adam brought death through disobedience, Christ (the Last Adam) brings life through obedience. (Rom 5:12–21; 1 Cor 15:45)' },
+  { id:'t_abel',     label:'Abel',               type:'christType', ref:'Gen 4; Heb 12:24',  desc:'Offered an acceptable sacrifice and was slain by his brother. His blood cried out; Christ\'s blood speaks a better word (Heb 12:24).' },
+  { id:'t_noah',     label:'Noah',               type:'christType', ref:'Gen 6–9; 1 Pet 3:20',desc:'Preacher of righteousness who saved his household through an ark. A picture of Christ who saves believers from judgment (1 Pet 3:20–21).' },
+  { id:'t_melch',    label:'Melchiz-\nedek',     type:'christType', ref:'Gen 14; Heb 7',     desc:'Priest-king of Salem (meaning "peace"), without recorded genealogy. Hebrews 7 argues Christ is a priest after his order — eternal, superior to the Levitical priesthood.' },
+  { id:'t_isaac',    label:'Isaac',              type:'christType', ref:'Gen 22; Heb 11:17', desc:'The beloved son offered up by his father. Abraham raised the knife; God provided a substitute ram. A preview of the Father offering His Son.' },
+  { id:'t_joseph',   label:'Joseph',             type:'christType', ref:'Gen 37–50',          desc:'Beloved son, rejected and "sold" by his brothers, falsely accused, exalted to save many lives. One of the richest OT pictures of Christ.' },
+  { id:'t_moses',    label:'Moses',              type:'christType', ref:'Ex; Deut 18:15',     desc:'Deliverer, lawgiver, and intercessor. God promised a Prophet like Moses (Deut 18:15). Christ fulfills all three offices: prophet, priest, and king.' },
+  { id:'t_passover', label:'Passover\nLamb',     type:'christType', ref:'Ex 12; John 1:29',   desc:'The lamb without blemish whose blood protected Israel from judgment. "Behold the Lamb of God, who takes away the sin of the world" (John 1:29; 1 Cor 5:7).' },
+  { id:'t_brazen',   label:'Bronze\nSerpent',    type:'christType', ref:'Num 21; John 3:14',  desc:'Those bitten by serpents were healed by looking at the bronze serpent lifted up. Jesus says, "As Moses lifted up the serpent…so must the Son of Man be lifted up" (John 3:14).' },
+  { id:'t_joshua',   label:'Joshua',             type:'christType', ref:'Josh; Heb 4:8',      desc:'Leads God\'s people into the Promised Land — a rest they could not enter under Moses (Law). Jesus (same name in Hebrew: Yeshua) gives the true rest (Heb 4:8–10).' },
+  { id:'t_boaz',     label:'Boaz\n(Kinsman)',    type:'christType', ref:'Ruth; Eph 1:7',      desc:'The kinsman-redeemer who purchased Ruth\'s redemption at personal cost. A picture of Christ who redeemed us at the cost of His own blood (Eph 1:7).' },
+  { id:'t_david',    label:'David',              type:'christType', ref:'1–2 Sam; Rev 22:16', desc:'The shepherd-king after God\'s own heart; recipient of the eternal covenant. Jesus is "the Root and Offspring of David" (Rev 22:16) and the ultimate shepherd-king.' },
+  { id:'t_jonah',    label:'Jonah',              type:'christType', ref:'Jonah; Matt 12:40',  desc:'Three days and nights in the fish\'s belly. Jesus says, "As Jonah was three days and three nights in the whale\'s belly, so shall the Son of Man be in the heart of the earth" (Matt 12:40).' },
+  // Messianic Prophecies
+  { id:'p_seed',     label:'Seed of\nWoman',     type:'prophecy',   ref:'Gen 3:15 → Gal 4:4',   desc:'The protevangelium — first gospel promise. The woman\'s seed will crush the serpent\'s head. Christ is born of a woman, defeats Satan, and restores what was lost.' },
+  { id:'p_abraham',  label:'Blessing\nAll Nations',type:'prophecy', ref:'Gen 12:3 → Gal 3:8',   desc:'"In thee shall all families of the earth be blessed." Paul calls this the gospel preached beforehand to Abraham. Fulfilled as Gentiles come to Christ.' },
+  { id:'p_prophet',  label:'Prophet\nLike Moses', type:'prophecy',  ref:'Deut 18:15 → Acts 3:22',desc:'"The LORD thy God will raise up unto thee a Prophet from the midst of thee…" Peter identifies this as Jesus in Acts 3:22.' },
+  { id:'p_ps22',     label:'Psalm 22\n(Cross)',   type:'prophecy',  ref:'Ps 22 → Matt 27',       desc:'Written 1,000 years before crucifixion was invented. "They pierced my hands and my feet… they part my garments among them." The crucifixion in prophecy.' },
+  { id:'p_ps110',    label:'Priest-\nKing',       type:'prophecy',  ref:'Ps 110 → Heb 5–7',      desc:'"Thou art a priest for ever after the order of Melchizedek." Jesus is both king (at God\'s right hand) and eternal priest — quoted more in the NT than any other OT text.' },
+  { id:'p_virgin',   label:'Virgin\nBirth',       type:'prophecy',  ref:'Is 7:14 → Matt 1:23',   desc:'"Behold, a virgin shall conceive and bear a son, and shall call his name Immanuel." Matthew explicitly applies this to Jesus\' miraculous birth.' },
+  { id:'p_is9',      label:'Unto Us\na Child',    type:'prophecy',  ref:'Is 9:6 → Luke 1:32',    desc:'"Unto us a child is born…Wonderful, Counsellor, The mighty God, The everlasting Father, The Prince of Peace." The full deity and humanity of Christ foretold.' },
+  { id:'p_is53',     label:'Suffering\nServant',  type:'prophecy',  ref:'Is 53 → 1 Pet 2:24',    desc:'"He was wounded for our transgressions…with his stripes we are healed." Written 700 years before Christ; describes the substitutionary atonement in detail.' },
+  { id:'p_bethlehem',label:'Born in\nBethlehem',  type:'prophecy',  ref:'Mic 5:2 → Matt 2:6',    desc:'"But thou, Bethlehem Ephratah…out of thee shall he come forth unto me that is to be ruler in Israel; whose goings forth have been from of old, from everlasting."' },
+  { id:'p_donkey',   label:'Triumphal\nEntry',    type:'prophecy',  ref:'Zech 9:9 → Matt 21:5',  desc:'"Behold, thy King cometh unto thee: he is just, and having salvation; lowly, and riding upon an ass." Fulfilled on Palm Sunday to the day.' },
+  // Themes
+  { id:'th_redemption',label:'Redemption',        type:'theme',     ref:'Ruth; Romans; Eph 1',   desc:'The theme of buying back that which was lost or enslaved. From Boaz redeeming Ruth to Christ redeeming sinners, God as Redeemer runs through all of Scripture.' },
+  { id:'th_sacrifice', label:'Sacrifice',          type:'theme',     ref:'Lev; Heb 10',           desc:'Beginning with Abel\'s offering, through the Levitical system, the theme of substitutionary sacrifice culminates in Christ\'s once-for-all atoning death.' },
+  { id:'th_kingdom',   label:'Kingdom\nof God',    type:'theme',     ref:'2 Sam 7; Matt; Rev 21', desc:'The reign of God over His people. Promised to David, proclaimed by Jesus, and finally consummated when every knee bows and Christ reigns forever.' },
+  { id:'th_promise',   label:'Promise',            type:'theme',     ref:'Gen 3:15; 2 Cor 1:20', desc:'"All the promises of God in him are yea, and in him Amen" (2 Cor 1:20). Scripture is the story of promises made and kept.' },
+  { id:'th_grace',     label:'Grace',              type:'theme',     ref:'Eph 2:8; John 1:17',   desc:'"For by grace are ye saved through faith; and that not of yourselves: it is the gift of God." Grace is the motive behind every act of redemption.' },
+  { id:'th_faith',     label:'Faith',              type:'theme',     ref:'Heb 11; Rom 1:17',      desc:'"The just shall live by faith" (Hab 2:4; Rom 1:17; Gal 3:11; Heb 10:38). The instrument of salvation in every age — trust in God\'s promise.' },
+];
+
+const GRAPH_LINKS = [
+  // Everything → Jesus
+  ...[
+    'c_edenic','c_adamic','c_noahic','c_abrahamic','c_mosaic','c_davidic','c_new',
+    't_adam','t_abel','t_noah','t_melch','t_isaac','t_joseph','t_moses','t_passover','t_brazen','t_joshua','t_boaz','t_david','t_jonah',
+    'p_seed','p_abraham','p_prophet','p_ps22','p_ps110','p_virgin','p_is9','p_is53','p_bethlehem','p_donkey',
+    'th_redemption','th_sacrifice','th_kingdom','th_promise','th_grace','th_faith',
+  ].map(id => ({ source:id, target:'jesus', label:'→ Christ' })),
+  // Covenant chain
+  { source:'c_edenic',    target:'c_adamic',    label:'broken →' },
+  { source:'c_adamic',    target:'c_noahic',    label:'precedes' },
+  { source:'c_noahic',    target:'c_abrahamic', label:'precedes' },
+  { source:'c_abrahamic', target:'c_mosaic',    label:'precedes' },
+  { source:'c_mosaic',    target:'c_davidic',   label:'precedes' },
+  { source:'c_davidic',   target:'c_new',       label:'leads to' },
+  // Types ↔ Covenants
+  { source:'t_isaac',    target:'c_abrahamic', label:'in' },
+  { source:'t_moses',    target:'c_mosaic',    label:'mediates' },
+  { source:'t_david',    target:'c_davidic',   label:'receives' },
+  { source:'t_passover', target:'c_mosaic',    label:'part of' },
+  // Types ↔ Prophecies
+  { source:'t_jonah',    target:'p_ps22',      label:'echoes' },
+  { source:'t_joseph',   target:'p_is53',      label:'foreshadows' },
+  // Themes ↔ Types
+  { source:'th_sacrifice',  target:'t_abel',    label:'shown in' },
+  { source:'th_sacrifice',  target:'t_isaac',   label:'shown in' },
+  { source:'th_sacrifice',  target:'t_passover',label:'shown in' },
+  { source:'th_redemption', target:'t_boaz',    label:'shown in' },
+  { source:'th_redemption', target:'t_joseph',  label:'shown in' },
+  { source:'th_kingdom',    target:'t_david',   label:'shown in' },
+  { source:'th_kingdom',    target:'c_davidic', label:'promised in' },
+  { source:'th_faith',      target:'t_noah',    label:'exemplified by' },
+  { source:'th_grace',      target:'c_new',     label:'embodied in' },
+  { source:'th_promise',    target:'c_abrahamic',label:'rooted in' },
+  // Prophecy ↔ Covenant
+  { source:'p_seed',     target:'c_adamic',    label:'from' },
+  { source:'p_abraham',  target:'c_abrahamic', label:'from' },
+  { source:'p_ps110',    target:'t_melch',     label:'echoes' },
+];
+
+// ════════════════════════════════════════════════════════════
+// D3 GRAPH
+// ════════════════════════════════════════════════════════════
+let simulation, gZoom, svgSel, nodeById={};
+
+function buildLegend() {
+  const el = document.getElementById('graphLegend');
+  el.innerHTML = Object.entries(NODE_LABELS).map(([type, label]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${NODE_COLORS[type]}"></div>${label}</div>`
+  ).join('');
+}
+
+function initGraph() {
+  buildLegend();
+  const container = document.getElementById('graphSvg');
+  const W = container.clientWidth || 660;
+  const H = container.clientHeight || 500;
+
+  svgSel = d3.select('#graphSvg');
+  svgSel.selectAll('*').remove();
+
+  // Arrowhead marker
+  svgSel.append('defs').append('marker')
+    .attr('id','arrow').attr('viewBox','0 -4 8 8').attr('refX',18).attr('refY',0)
+    .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+    .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','#445566').attr('fill-opacity',0.6);
+
+  const g = svgSel.append('g').attr('class','graph-g');
+
+  // Zoom/pan
+  gZoom = d3.zoom().scaleExtent([0.15,3]).on('zoom', e => g.attr('transform', e.transform));
+  svgSel.call(gZoom);
+
+  // Copy nodes/links for D3 mutation
+  const nodes = GRAPH_NODES.map(n => ({...n}));
+  const links = GRAPH_LINKS.map(l => ({...l}));
+  nodeById = Object.fromEntries(nodes.map(n=>[n.id,n]));
+
+  // Node sizes
+  const NODE_R = { center:28, covenant:16, christType:14, prophecy:13, theme:15 };
+
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d=>d.id).distance(d => {
+      if (d.target.id==='jesus' || d.source.id==='jesus') return 120;
+      return 160;
+    }).strength(0.4))
+    .force('charge', d3.forceManyBody().strength(d => d.type==='center' ? -600 : -220))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collide', d3.forceCollide().radius(d => (NODE_R[d.type]||14) + 22))
+    .alphaDecay(0.025);
+
+  // Links
+  const link = g.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke','#334455').attr('stroke-width',1.2).attr('stroke-opacity',0.55)
+    .attr('marker-end','url(#arrow)');
+
+  // Node groups
+  const node = g.append('g').selectAll('g').data(nodes).join('g')
+    .attr('class','graph-node').style('cursor','pointer')
+    .call(d3.drag()
+      .on('start', (e,d) => { if(!e.active) simulation.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+      .on('end',   (e,d) => { if(!e.active) simulation.alphaTarget(0); d.fx=null; d.fy=null; })
+    )
+    .on('click', (e, d) => { e.stopPropagation(); selectNode(d, nodes, links); });
+
+  node.append('circle')
+    .attr('r', d => NODE_R[d.type]||14)
+    .attr('fill', d => NODE_COLORS[d.type]||'#888')
+    .attr('fill-opacity', 0.88)
+    .attr('stroke', '#0d1117')
+    .attr('stroke-width', 1.5);
+
+  node.append('text')
+    .selectAll('tspan')
+    .data(d => d.label.split('\n'))
+    .join('tspan')
+    .attr('x', 0).attr('dy', (_, i, a) => i===0 ? `${-(a.length-1)*0.55}em` : '1.1em')
+    .attr('text-anchor','middle').attr('fill','#e8eef7')
+    .attr('font-size', d => d.length > 8 ? '9px' : '10px')
+    .attr('font-family','Inter,system-ui,sans-serif')
+    .attr('font-weight','600')
+    .attr('pointer-events','none')
+    .text(t => t);
+
+  simulation.on('tick', () => {
+    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+        .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+
+  svgSel.on('click', () => clearSelection(nodes));
+}
+
+function selectNode(d, nodes, links) {
+  // Dim others, highlight selected + connections
+  const connectedIds = new Set([d.id]);
+  links.forEach(l => {
+    if ((l.source.id||l.source)===d.id) connectedIds.add(l.target.id||l.target);
+    if ((l.target.id||l.target)===d.id) connectedIds.add(l.source.id||l.source);
+  });
+  d3.selectAll('.graph-node circle').attr('fill-opacity', n => connectedIds.has(n.id) ? 0.95 : 0.15);
+  d3.selectAll('.graph-node text tspan').attr('fill', n => connectedIds.has(n.id) ? '#fff' : '#334');
+  d3.selectAll('line').attr('stroke-opacity', l => {
+    const sid=l.source.id||l.source, tid=l.target.id||l.target;
+    return (sid===d.id||tid===d.id) ? 0.9 : 0.06;
+  });
+  renderNodeDetail(d, links);
+}
+
+function clearSelection(nodes) {
+  d3.selectAll('.graph-node circle').attr('fill-opacity', 0.88);
+  d3.selectAll('.graph-node text tspan').attr('fill','#e8eef7');
+  d3.selectAll('line').attr('stroke-opacity', 0.55);
+  document.getElementById('graphDetail').innerHTML = '<div class="graph-placeholder">Click any node to see details.</div>';
+}
+
+function renderNodeDetail(d, links) {
+  const connected = [];
+  links.forEach(l => {
+    const sid=l.source.id||l.source, tid=l.target.id||l.target;
+    if (sid===d.id && tid!==d.id) connected.push({id:tid, rel:l.label, dir:'→'});
+    if (tid===d.id && sid!==d.id) connected.push({id:sid, rel:l.label, dir:'←'});
+  });
+  const typeColor = NODE_COLORS[d.type]||'#888';
+  const typeLabel = NODE_LABELS[d.type]||d.type;
+  document.getElementById('graphDetail').innerHTML = `
+    <div style="width:100%;height:4px;background:${typeColor};border-radius:2px;margin-bottom:0.75rem"></div>
+    <div class="detail-type" style="color:${typeColor}">${typeLabel}</div>
+    <h3>${d.label.replace(/\n/g,' ')}</h3>
+    <div class="detail-ref">${d.ref}</div>
+    <div class="detail-desc">${d.desc}</div>
+    ${connected.length ? `
+    <div class="detail-connections">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:0.35rem">Connections</div>
+      ${connected.map(c=>{
+        const cn = nodeById[c.id];
+        return cn ? `<span class="conn-chip" onclick="selectNode(nodeById['${c.id}'],null,null)" title="${c.rel}">${cn.label.replace(/\n/g,' ')}</span>` : '';
+      }).join('')}
+    </div>` : ''}
+  `;
+  // Make conn-chips actually work with the full links
+  document.querySelectorAll('.conn-chip').forEach(chip => {
+    const nodeId = chip.getAttribute('onclick').match(/'([^']+)'/)[1];
+    chip.onclick = () => {
+      const nd = nodeById[nodeId];
+      if (nd) selectNode(nd, GRAPH_NODES.map(n=>({...n,...(simulation?{x:nodeById[n.id]?.x,y:nodeById[n.id]?.y}:{})})), GRAPH_LINKS);
+    };
+  });
+}
+
+function resetGraph() {
+  if (!svgSel) return;
+  const W = document.getElementById('graphSvg').clientWidth||660;
+  const H = document.getElementById('graphSvg').clientHeight||500;
+  svgSel.transition().duration(600).call(gZoom.transform, d3.zoomIdentity.translate(0,0).scale(1));
+}
+
+function centerOnJesus() {
+  if (!simulation) return;
+  const jesus = simulation.nodes().find(n=>n.id==='jesus');
+  if (!jesus) return;
+  const W=document.getElementById('graphSvg').clientWidth||660;
+  const H=document.getElementById('graphSvg').clientHeight||500;
+  svgSel.transition().duration(700).call(gZoom.transform, d3.zoomIdentity.translate(W/2-jesus.x,H/2-jesus.y));
+}
+
+// ════════════════════════════════════════════════════════════
+// READING PLAN DATA
+// ════════════════════════════════════════════════════════════
+const READING_TRACKS = {
+  beginner: {
+    title: 'Begin Here',
+    subtitle: '30 days · The Greatest Story',
+    desc: 'The essential arc of the Bible — creation to new creation. Perfect for a complete first-time reader.',
+    days: [
+      {title:'Creation',           passages:['Genesis 1','Genesis 2'],           theme:'God creates everything good; humanity is made in His image'},
+      {title:'The Fall',           passages:['Genesis 3'],                        theme:'Sin enters — and the first promise of rescue is given (Gen 3:15)'},
+      {title:'Noah & the Flood',   passages:['Genesis 6','Genesis 8','Genesis 9'],theme:'Judgment and grace; God preserves a remnant; the rainbow covenant'},
+      {title:'Abraham\'s Call',    passages:['Genesis 12','Genesis 15'],          theme:'God chooses a man and makes an unconditional covenant of blessing'},
+      {title:'The Test of Faith',  passages:['Genesis 22'],                       theme:'Abraham offers Isaac; God provides a substitute; a picture of Calvary'},
+      {title:'Joseph Sold & Risen',passages:['Genesis 37','Genesis 41'],          theme:'Betrayed, imprisoned, exalted to save many lives — a type of Christ'},
+      {title:'Moses Called',       passages:['Exodus 1','Exodus 2','Exodus 3'],   theme:'"I AM WHO I AM" — God reveals His name and sends a deliverer'},
+      {title:'The Passover',       passages:['Exodus 12'],                        theme:'The blood of a lamb protects from judgment — the gospel in picture'},
+      {title:'The Red Sea',        passages:['Exodus 14'],                        theme:'Rescue through water; the enemy swallowed up; salvation by grace alone'},
+      {title:'The Ten Commandments',passages:['Exodus 20'],                       theme:'God\'s moral law reveals His character and our need for a savior'},
+      {title:'The Tabernacle',     passages:['Exodus 25','Exodus 40'],            theme:'God dwells with His people; every element points forward to Christ'},
+      {title:'Day of Atonement',   passages:['Leviticus 16'],                     theme:'The high priest enters once a year; Christ enters once for all (Heb 9)'},
+      {title:'Joshua Crosses Over',passages:['Joshua 1','Joshua 3'],              theme:'A new leader, a new land; rest finally entered through faith'},
+      {title:'Ruth & Boaz',        passages:['Ruth 1','Ruth 2','Ruth 4'],         theme:'Loyal love; the kinsman-redeemer; a portrait of Christ and the church'},
+      {title:'David & Goliath',    passages:['1 Samuel 17'],                      theme:'The champion fights for his people; victory through one man'},
+      {title:'The Davidic Covenant',passages:['2 Samuel 7'],                      theme:'God promises David an eternal kingdom and an everlasting heir'},
+      {title:'Psalms of Christ',   passages:['Psalm 22','Psalm 23'],              theme:'Ps 22: The crucifixion in prophecy · Ps 23: The Good Shepherd\'s care'},
+      {title:'The Suffering Servant',passages:['Isaiah 53'],                      theme:'Written 700 yrs before Christ: "He was wounded for our transgressions"'},
+      {title:'Jonah',              passages:['Jonah 1','Jonah 2','Jonah 3','Jonah 4'],theme:'Three days in the deep — a sign Jesus points to as His own resurrection'},
+      {title:'The Birth of Jesus', passages:['Luke 1','Luke 2'],                  theme:'The eternal Word takes on flesh; the long-awaited King is born'},
+      {title:'Sermon on the Mount',passages:['Matthew 5','Matthew 6','Matthew 7'],theme:'The greatest ethical teaching ever given; the heart of the Kingdom'},
+      {title:'Who Is Jesus?',      passages:['John 1','John 3'],                  theme:'"The Word became flesh" · "You must be born again" · John 3:16'},
+      {title:'The Good Shepherd',  passages:['John 10'],                          theme:'"I am the good shepherd: the good shepherd giveth his life for the sheep"'},
+      {title:'Lazarus & the I AM', passages:['John 11'],                          theme:'"I am the resurrection and the life" — death reversed'},
+      {title:'The Last Supper',    passages:['Luke 22'],                          theme:'The new covenant in His blood; the Lord\'s Supper instituted'},
+      {title:'The Cross',          passages:['John 19'],                          theme:'"It is finished" — the full payment made; the new covenant sealed'},
+      {title:'Resurrection Morning',passages:['John 20'],                         theme:'Death is defeated; the tomb is empty; everything changes'},
+      {title:'Pentecost',          passages:['Acts 1','Acts 2'],                  theme:'The Holy Spirit poured out; the church born; the mission begins'},
+      {title:'Grace & Justification',passages:['Romans 3','Romans 4','Romans 5'],theme:'All have sinned; we are justified by faith; peace with God through Christ'},
+      {title:'The New Creation',   passages:['Revelation 21','Revelation 22'],    theme:'All things made new; God dwells with His people; the story complete'},
+    ]
+  },
+  story: {
+    title: 'The Whole Story',
+    subtitle: '90 days · Major Narrative',
+    desc: 'The full sweep of Scripture — Law, History, Psalms, Prophets, Gospels, Epistles, Revelation.',
+    days: Array.from({length:90},(_,i)=>{
+      const wk=Math.floor(i/7)+1;
+      const books=[
+        ['Genesis 1-11','Genesis 12-25','Genesis 26-50','Exodus 1-20','Exodus 21-40'],
+        ['Leviticus (key ch)','Numbers (key ch)','Deuteronomy','Joshua','Judges & Ruth'],
+        ['1 Samuel','2 Samuel','1 Kings','2 Kings','Ezra-Nehemiah'],
+        ['Job','Psalms 1-50','Psalms 51-100','Psalms 101-150','Proverbs-Ecclesiastes'],
+        ['Isaiah 1-39','Isaiah 40-66','Jeremiah','Ezekiel','Daniel & Minor Prophets'],
+        ['Matthew 1-13','Matthew 14-28','Mark','Luke 1-12','Luke 13-24'],
+        ['John','Acts 1-14','Acts 15-28','Romans-Galatians','Ephesians-Philemon'],
+        ['Hebrews-James','1-2 Peter & Jude','1-3 John','Revelation 1-11','Revelation 12-22'],
+      ];
+      const section=books[Math.min(Math.floor(i/11),books.length-1)];
+      const passage=section[i%section.length];
+      return {title:`Week ${wk} — Day ${(i%7)+1}`, passages:[passage], theme:`Reading through ${passage}`};
+    })
+  },
+  daily: {
+    title: 'Daily Reader',
+    subtitle: '365 days · Full Bible',
+    desc: 'Read through the entire Bible in one year — approximately 3 chapters per day.',
+    days: (() => {
+      const plan=[]; let bi=0,ci=1;
+      const chCounts=[50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,16,16,4,6,4,4,5,4,3,1,14,4,5,3,6,4,4,6,3,1,25,5,4,1,16];
+      const used=new Set();
+      for (let day=1;day<=365;day++){
+        const passages=[];
+        let chaptersThisDay=3;
+        while(chaptersThisDay>0&&bi<CANONICAL_ORDER.length){
+          const bookTotal=chCounts[bi]||1;
+          passages.push(`${CANONICAL_ORDER[bi]} ${ci}`);
+          ci++;
+          if(ci>bookTotal){ci=1;bi++;}
+          chaptersThisDay--;
+        }
+        plan.push({title:`Day ${day}`,passages,theme:passages.join(' · ')});
+        if(bi>=CANONICAL_ORDER.length)break;
+      }
+      return plan;
+    })()
   }
-  el.innerHTML = sources.map(s => `
-    <div class="source-card">
-      <h3>${escapeHtml(s.author)} <span class="source-approved">✓ Approved</span></h3>
-      <p><em>${escapeHtml(s.title)}</em> (${s.year})</p>
-      ${s.description ? `<p style="margin-top:0.4rem">${escapeHtml(s.description)}</p>` : ''}
-      <p style="margin-top:0.4rem;font-size:0.78rem;color:var(--ink-dim)">
-        File: <code>sources/${escapeHtml(s.file)}</code>
-      </p>
+};
+
+let activePlanTrack = 'beginner';
+
+function buildTrackCards() {
+  const el = document.getElementById('trackCards');
+  el.innerHTML = Object.entries(READING_TRACKS).map(([key, t]) =>
+    `<div class="track-card ${key===activePlanTrack?'active':''}" onclick="selectTrack('${key}')">
+      <h3>${t.title}</h3>
+      <div class="track-sub">${t.subtitle}</div>
+      <p>${t.desc}</p>
+    </div>`
+  ).join('');
+}
+
+function selectTrack(key) {
+  activePlanTrack = key;
+  buildTrackCards();
+  renderPlanDays();
+}
+
+function getPlanProgress() {
+  try { return JSON.parse(localStorage.getItem(`plan_${activePlanTrack}`)||'[]'); } catch(_) { return []; }
+}
+function setPlanProgress(arr) {
+  try { localStorage.setItem(`plan_${activePlanTrack}`, JSON.stringify(arr)); } catch(_) {}
+}
+
+function renderPlanDays() {
+  const track = READING_TRACKS[activePlanTrack];
+  const done  = new Set(getPlanProgress());
+  const total = track.days.length;
+  const count = done.size;
+
+  document.getElementById('planProgress').style.display = 'block';
+  document.getElementById('planProgress').innerHTML = `
+    <div class="progress-label">
+      <span>${count} of ${total} days completed</span>
+      <button class="btn-reset-plan" onclick="resetPlan()">Reset progress</button>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${total?Math.round(count/total*100):0}%"></div></div>
+  `;
+
+  const list = document.getElementById('planDayList');
+  // Only render first 60 days for DOM performance; add "Show all" button
+  const showAll = list.dataset.showAll === '1';
+  const days = showAll ? track.days : track.days.slice(0, 60);
+
+  list.innerHTML = `<div class="day-list">` +
+    days.map((d, i) => `
+    <div class="day-item ${done.has(i)?'done':''}" id="dayitem-${i}">
+      <input type="checkbox" ${done.has(i)?'checked':''} onchange="toggleDay(${i},this.checked)" />
+      <div class="day-num">Day ${i+1}</div>
+      <div class="day-content">
+        <h4>${escapeHtml(d.title)}</h4>
+        <div class="day-passages">${d.passages.map(p=>`<span style="cursor:pointer;text-decoration:underline" onclick="jumpToBrowse('${p.replace(/'/g,"\\'")}')">${escapeHtml(p)}</span>`).join(' · ')}</div>
+        <div class="day-theme">${escapeHtml(d.theme)}</div>
+      </div>
+    </div>`).join('') +
+    `</div>` +
+    (!showAll && track.days.length > 60 ? `<div style="text-align:center;margin-top:1rem"><button class="btn-ghost" onclick="document.getElementById('planDayList').dataset.showAll='1';renderPlanDays()">Show all ${track.days.length} days</button></div>` : '');
+}
+
+function toggleDay(index, checked) {
+  const done = getPlanProgress();
+  const s = new Set(done);
+  checked ? s.add(index) : s.delete(index);
+  setPlanProgress([...s]);
+  const item = document.getElementById(`dayitem-${index}`);
+  if (item) item.className = `day-item ${checked?'done':''}`;
+  renderProgress();
+}
+
+function renderProgress() {
+  const track = READING_TRACKS[activePlanTrack];
+  const done  = new Set(getPlanProgress());
+  const total = track.days.length, count = done.size;
+  document.getElementById('planProgress').innerHTML = `
+    <div class="progress-label">
+      <span>${count} of ${total} days completed</span>
+      <button class="btn-reset-plan" onclick="resetPlan()">Reset progress</button>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${total?Math.round(count/total*100):0}%"></div></div>
+  `;
+}
+
+function resetPlan() {
+  if (!confirm('Reset all progress for this plan?')) return;
+  setPlanProgress([]);
+  renderPlanDays();
+}
+
+function jumpToBrowse(passageStr) {
+  // Parse "Book Chapter" and navigate to browse page
+  const m = passageStr.match(/^(.+?)\s+(\d+)/);
+  if (!m) return;
+  const book=m[1].trim(), ch=parseInt(m[2]);
+  showPage('browse');
+  const bs=document.getElementById('bookSelect');
+  for (let i=0;i<bs.options.length;i++) {
+    if (bs.options[i].value===book) { bs.selectedIndex=i; break; }
+  }
+  onBookChange();
+  setTimeout(()=>{ const cs=document.getElementById('chapterSelect'); for(let i=0;i<cs.options.length;i++){if(parseInt(cs.options[i].value)===ch){cs.selectedIndex=i;break;}} renderBrowse(); },100);
+}
+
+// ════════════════════════════════════════════════════════════
+// CHRIST IN SCRIPTURE DATA & RENDERING
+// ════════════════════════════════════════════════════════════
+const COVENANTS_DATA = [
+  { name:'Edenic Covenant',    ref:'Genesis 1–2',       color:'#166534',
+    parties:'God ↔ Adam & Eve', promise:'Blessing, fruitfulness, dominion over creation', condition:'Obedience — do not eat of the forbidden tree', sign:'The Garden itself; access to the Tree of Life',
+    fulfillment:'Christ is the Last Adam who perfectly obeys where Adam failed. He restores dominion and access to the Tree of Life (Rev 22:2).' },
+  { name:'Adamic Covenant',    ref:'Genesis 3:14–19',   color:'#991b1b',
+    parties:'God ↔ fallen humanity', promise:'The woman\'s seed will crush the serpent\'s head (protevangelium — "first gospel")', condition:'Unconditional promise amid curse', sign:'The enmity between seed of woman and serpent',
+    fulfillment:'"God sent forth his Son, made of a woman" (Gal 4:4). Christ crushed Satan\'s head at the cross (Col 2:15).' },
+  { name:'Noahic Covenant',    ref:'Genesis 9:8–17',    color:'#1e40af',
+    parties:'God ↔ all living creatures', promise:'No more global flood; seasons will continue; history will proceed', condition:'Unconditional — God binds Himself', sign:'The rainbow',
+    fulfillment:'Ensures history continues until redemption is complete. Guarantees the stable world in which Christ could come "in the fullness of time" (Gal 4:4).' },
+  { name:'Abrahamic Covenant', ref:'Gen 12; 15; 17',   color:'#92400e',
+    parties:'God ↔ Abraham (& his seed)', promise:'A great nation, a land, and blessing to all families of the earth through his seed', condition:'Unconditional — ratified by God alone (Gen 15); sign is circumcision', sign:'Circumcision; stars; covenant ceremony (Gen 15)',
+    fulfillment:'"And to thy seed, which is Christ" (Gal 3:16). All nations blessed through Christ, the seed of Abraham. Believers are Abraham\'s children by faith (Gal 3:7).' },
+  { name:'Mosaic Covenant',    ref:'Exodus 19–24',      color:'#5b21b6',
+    parties:'God ↔ Israel (national)', promise:'Israel will be God\'s treasured possession, a kingdom of priests', condition:'Conditional — "if you will obey my voice and keep my covenant" (Ex 19:5)', sign:'The Sabbath; the Law itself',
+    fulfillment:'Christ fulfills the Law perfectly (Matt 5:17). The Law was our "schoolmaster to bring us unto Christ" (Gal 3:24). The Mosaic covenant is superseded — not annulled — by the New Covenant (Heb 8:13).' },
+  { name:'Davidic Covenant',   ref:'2 Samuel 7:8–16',  color:'#0f766e',
+    parties:'God ↔ David (& his house)', promise:'An eternal house, throne, and kingdom; an heir whose kingdom shall never end', condition:'Unconditional regarding the dynasty; individual kings disciplined', sign:'David\'s throne; Solomon\'s temple as foretaste',
+    fulfillment:'"He shall be great, and shall be called the Son of the Highest: and the Lord God shall give unto him the throne of his father David: and he shall reign over the house of Jacob for ever" (Luke 1:32–33). Jesus is the Son of David who reigns forever.' },
+  { name:'New Covenant',       ref:'Jer 31:31–34; Luke 22:20', color:'#dc2626',
+    parties:'God ↔ the new Israel (all believers)', promise:'Law written on hearts, God as "my God/my people," full forgiveness, indwelling Spirit', condition:'Unconditional — based on Christ\'s perfect obedience', sign:'Baptism; the Lord\'s Supper ("the new covenant in my blood")',
+    fulfillment:'Established by Christ\'s blood (Luke 22:20; Heb 9:15). The Spirit writes the law on the heart (2 Cor 3:3). Complete and permanent forgiveness (Heb 10:14). This is the covenant believers live under today.' },
+];
+
+const TYPES_DATA = [
+  { figure:'Adam',          otRef:'Gen 1–2; 5:5',         ntRef:'Rom 5:12–21; 1 Cor 15:45–49',
+    comparison:'As the first Adam brought death and condemnation to all through one act of disobedience, the Last Adam (Christ) brings life and justification to all who believe through His one act of obedience.',
+    contrast:'Adam sinned in a perfect garden with every advantage; Christ triumphed in a wilderness fasting 40 days, under maximum temptation.' },
+  { figure:'Abel',          otRef:'Gen 4:1–8',             ntRef:'Heb 11:4; Heb 12:24; Matt 23:35',
+    comparison:'Abel offered an acceptable blood sacrifice and was killed by his own brother. Christ offered the ultimate blood sacrifice and was killed by His own people.',
+    contrast:'Abel\'s blood cried out for vengeance (Gen 4:10); Christ\'s blood speaks a better word — intercession and forgiveness (Heb 12:24).' },
+  { figure:'Noah',          otRef:'Gen 6–9',               ntRef:'1 Pet 3:20–21; 2 Pet 2:5; Matt 24:37–38',
+    comparison:'Noah preached righteousness for 120 years; built an ark that saved his household from judgment by water. Christ preaches righteousness and saves believers from coming judgment.',
+    contrast:'Only 8 were saved through Noah\'s ark; through Christ\'s "ark," a multitude no one can number (Rev 7:9).' },
+  { figure:'Melchizedek',   otRef:'Gen 14:17–20; Ps 110:4',ntRef:'Heb 5:1–10; Heb 7',
+    comparison:'Priest-king of Salem (peace) who brought bread and wine; had no recorded beginning or end; received tithes from Abraham. Christ is the eternal Priest-King who offers His own body and blood.',
+    contrast:'Melchizedek was a type and shadow; Christ is the substance. The Levitical priesthood was temporary; Christ\'s is eternal and superior.' },
+  { figure:'Isaac',         otRef:'Gen 21–22',             ntRef:'Heb 11:17–19; Gal 4:28; Rom 8:32',
+    comparison:'Isaac was the uniquely beloved son, miraculously born, willingly laid on the altar by his father. God provided a substitute ram instead. The Father offered His own Son, and no substitute was accepted — Christ died.',
+    contrast:'Isaac was spared; Christ was not. "He that spared not his own Son, but delivered him up for us all" (Rom 8:32).' },
+  { figure:'Joseph',        otRef:'Gen 37–50',             ntRef:'Acts 7:9–10; John 1:11; Phil 2:9–11',
+    comparison:'Joseph was the beloved son, stripped of his robe, thrown into a pit, sold for silver by his brothers, falsely accused, imprisoned, then exalted to the right hand of Pharaoh to save many lives.',
+    contrast:'Joseph forgave and literally nourished his brothers. Christ forgives and spiritually feeds all who come to Him.' },
+  { figure:'Moses',         otRef:'Ex; Num; Deut 18:15',   ntRef:'Acts 3:22; Jn 1:17; Heb 3:1–6',
+    comparison:'Moses delivered Israel from Egyptian bondage, mediated the Law, interceded for the people, and met with God face to face. Christ delivers from sin, fulfills the Law, intercedes before God, and is the face of God Himself.',
+    contrast:'"Moses was faithful in all God\'s house as a servant…but Christ as a son over his own house" (Heb 3:5–6).' },
+  { figure:'Passover Lamb', otRef:'Ex 12',                 ntRef:'John 1:29; 1 Cor 5:7; 1 Pet 1:19',
+    comparison:'A lamb without blemish, killed at twilight, its blood applied to the doorposts — death passed over. Christ, the spotless Lamb, was killed at Passover; His blood applied by faith causes judgment to pass over the believer.',
+    contrast:'The Passover required annual repetition. "Christ our Passover is sacrificed for us" — once for all (1 Cor 5:7; Heb 10:10).' },
+  { figure:'Bronze Serpent',otRef:'Num 21:4–9',            ntRef:'John 3:14–15',
+    comparison:'The Israelites bitten by serpents were healed by simply looking at the bronze serpent lifted up on a pole. Jesus explicitly uses this as a metaphor for His own crucifixion: "So must the Son of Man be lifted up, that whoever believes may have eternal life."',
+    contrast:'The bronze serpent was later destroyed because people made it an idol (2 Kgs 18:4); Christ is worshiped rightly as Savior.' },
+  { figure:'Joshua',        otRef:'Josh 1–24',             ntRef:'Heb 4:8; Acts 7:45',
+    comparison:'Joshua (same name as Jesus — Yeshua, "the LORD saves") led Israel across the Jordan into the Promised Land — a rest they could not enter under Moses (the Law). Christ leads believers into the true spiritual rest.',
+    contrast:'"If Joshua had given them rest, then would he not afterward have spoken of another day" (Heb 4:8). The earthly rest was temporal; Christ\'s rest is eternal.' },
+  { figure:'Boaz',          otRef:'Ruth 1–4',              ntRef:'Eph 1:7; Gal 3:13; 1 Tim 2:6',
+    comparison:'Boaz was the "kinsman-redeemer" (goel) — a close relative who had both the right and the willingness to redeem Ruth from poverty and restore her family inheritance at personal cost.',
+    contrast:'To redeem Ruth, Boaz needed to be a kinsman (human) and able to pay the price. Christ, fully God and fully human, has both the right and the resources — He paid with His own blood.' },
+  { figure:'David',         otRef:'1 Sam 16–2 Sam 24',     ntRef:'Matt 1:1; Rev 22:16; Jn 10:11',
+    comparison:'The shepherd-boy who became king, slaying the giant that terrorized God\'s people, ruling with justice, and receiving an eternal covenant — a man after God\'s own heart.',
+    contrast:'David was a flawed shepherd-king who failed morally; Christ is the sinless "Good Shepherd" who lays down His life for the sheep (John 10:11).' },
+  { figure:'Jonah',         otRef:'Jonah 1–4',             ntRef:'Matt 12:39–41; Luke 11:29–32',
+    comparison:'Jonah spent three days and nights in the belly of the great fish, then was "resurrected" to complete his mission. Jesus explicitly identifies this as the sign of His own death and resurrection: "so shall the Son of Man be three days and three nights in the heart of the earth."',
+    contrast:'Jonah resented God\'s mercy; Christ embodies and extends it. Jonah reluctantly saved one city; Christ willingly saves people from every nation.' },
+];
+
+const PROPHECIES_DATA = [
+  { title:'Protevangelium — First Gospel Promise',
+    otRef:'Genesis 3:15', otText:'"And I will put enmity between thee and the woman, and between thy seed and her seed; it shall bruise thy head, and thou shalt bruise his heel."',
+    ntRef:'Galatians 4:4; Romans 16:20', ntText:'"But when the fulness of the time was come, God sent forth his Son, made of a woman…" / "…the God of peace shall bruise Satan under your feet shortly."',
+    theme:'The very first promise of salvation — written immediately after the Fall, c. 4000 BC' },
+  { title:'Blessing to All Nations Through Abraham\'s Seed',
+    otRef:'Genesis 12:3; 22:18', otText:'"In thee shall all families of the earth be blessed… and in thy seed shall all the nations of the earth be blessed."',
+    ntRef:'Galatians 3:8, 16', ntText:'"The scripture…preached before the gospel unto Abraham… Now to Abraham and his seed were the promises made. He saith not, And to seeds…but to thy seed, which is Christ."',
+    theme:'The Abrahamic covenant — the Gentiles were always part of God\'s redemptive plan' },
+  { title:'A Prophet Like Moses',
+    otRef:'Deuteronomy 18:15, 18–19', otText:'"The LORD thy God will raise up unto thee a Prophet from the midst of thee, of thy brethren, like unto me; unto him ye shall hearken."',
+    ntRef:'Acts 3:22–26; John 6:14', ntText:'"For Moses truly said unto the fathers, A prophet shall the Lord your God raise up unto you of your brethren, like unto me; him shall ye hear in all things."',
+    theme:'Jesus is the ultimate prophet — the final and definitive Word of God' },
+  { title:'Crucifixion Psalm — Written 1,000 Years Before',
+    otRef:'Psalm 22:1, 16–18', otText:'"My God, my God, why hast thou forsaken me?… they pierced my hands and my feet… They part my garments among them, and cast lots upon my vesture."',
+    ntRef:'Matthew 27:35, 46; John 19:24', ntText:'"And they crucified him…And they divided his garments…that the scripture might be fulfilled." / "My God, my God, why hast thou forsaken me?"',
+    theme:'Crucifixion was a Roman method invented centuries after this psalm was written' },
+  { title:'Eternal Priest After Melchizedek\'s Order',
+    otRef:'Psalm 110:4', otText:'"The LORD hath sworn, and will not repent, Thou art a priest for ever after the order of Melchizedek."',
+    ntRef:'Hebrews 5:6; 7:17, 21', ntText:'"Thou art a priest for ever after the order of Melchisedec." The entire book of Hebrews argues Christ\'s priesthood is superior and eternal.',
+    theme:'The most-quoted OT verse in the NT — a priest-king who is both fully divine and fully human' },
+  { title:'Born of a Virgin',
+    otRef:'Isaiah 7:14', otText:'"Therefore the Lord himself shall give you a sign; Behold, a virgin shall conceive, and bear a son, and shall call his name Immanuel."',
+    ntRef:'Matthew 1:22–23; Luke 1:34–35', ntText:'"Now all this was done, that it might be fulfilled which was spoken of the Lord by the prophet, saying, Behold, a virgin shall be with child, and shall bring forth a son, and they shall call his name Emmanuel."',
+    theme:'The miraculous incarnation — God enters His own creation as a human being' },
+  { title:'A Child Born — The Mighty God',
+    otRef:'Isaiah 9:6', otText:'"For unto us a child is born, unto us a son is given: and the government shall be upon his shoulder: and his name shall be called Wonderful, Counsellor, The mighty God, The everlasting Father, The Prince of Peace."',
+    ntRef:'Luke 1:32–33; John 1:1–3', ntText:'"He shall be great, and shall be called the Son of the Highest: and the Lord God shall give unto him the throne of his father David: and he shall reign over the house of Jacob for ever; and of his kingdom there shall be no end."',
+    theme:'The full deity and humanity of Christ announced 700 years before His birth' },
+  { title:'The Suffering Servant',
+    otRef:'Isaiah 53:4–6', otText:'"Surely he hath borne our griefs, and carried our sorrows… he was wounded for our transgressions, he was bruised for our iniquities… and with his stripes we are healed."',
+    ntRef:'1 Peter 2:24–25; Matthew 8:17', ntText:'"Who his own self bare our sins in his own body on the tree, that we, being dead to sins, should live unto righteousness: by whose stripes ye were healed."',
+    theme:'The substitutionary atonement laid out in detail — 700 years before the cross' },
+  { title:'Born in Bethlehem',
+    otRef:'Micah 5:2', otText:'"But thou, Bethlehem Ephratah, though thou be little among the thousands of Judah, yet out of thee shall he come forth unto me that is to be ruler in Israel; whose goings forth have been from of old, from everlasting."',
+    ntRef:'Matthew 2:5–6; Luke 2:4–7', ntText:'"And thou Bethlehem, in the land of Juda, art not the least among the princes of Juda: for out of thee shall come a Governor, that shall rule my people Israel."',
+    theme:'The exact birthplace named 700 years in advance — and the eternal pre-existence of Christ' },
+  { title:'Triumphal Entry on a Donkey',
+    otRef:'Zechariah 9:9', otText:'"Rejoice greatly, O daughter of Zion… behold, thy King cometh unto thee: he is just, and having salvation; lowly, and riding upon an ass, and upon a colt the foal of an ass."',
+    ntRef:'Matthew 21:4–5; John 12:15', ntText:'"All this was done, that it might be fulfilled which was spoken by the prophet, saying, Tell ye the daughter of Sion, Behold, thy King cometh unto thee, meek, and sitting upon an ass."',
+    theme:'Palm Sunday — the public declaration of Christ as King, deliberately fulfilling Scripture' },
+  { title:'Betrayed for 30 Pieces of Silver',
+    otRef:'Zechariah 11:12–13', otText:'"So they weighed for my price thirty pieces of silver… And I took the thirty pieces of silver, and cast them to the potter in the house of the LORD."',
+    ntRef:'Matthew 27:3–10', ntText:'"Then Judas…repented himself, and brought again the thirty pieces of silver to the chief priests… And they took counsel, and bought with them the potter\'s field."',
+    theme:'The exact price of betrayal and its specific use — foretold 500 years in advance' },
+  { title:'Resurrection — Soul Not Left in Hell',
+    otRef:'Psalm 16:10', otText:'"For thou wilt not leave my soul in hell; neither wilt thou suffer thine Holy One to see corruption."',
+    ntRef:'Acts 2:31; Acts 13:35', ntText:'"He seeing this before spake of the resurrection of Christ, that his soul was not left in hell, neither his flesh did see corruption."',
+    theme:'David wrote this Psalm; Peter argues David died and saw corruption — therefore it refers to Christ' },
+];
+
+function renderCovenants() {
+  const el = document.getElementById('covenantList');
+  el.innerHTML = COVENANTS_DATA.map((c,i) => `
+    <div class="covenant-item">
+      <div class="covenant-card">
+        <div class="covenant-header" onclick="toggleCovenant(${i})">
+          <div class="covenant-number" style="background:${c.color}">${i+1}</div>
+          <h3>${c.name}</h3>
+          <span class="covenant-ref-badge">${c.ref}</span>
+          <span style="color:var(--ink-dim);margin-left:0.5rem">▾</span>
+        </div>
+        <div class="covenant-body" id="cov-${i}">
+          <div class="covenant-row">
+            <div class="covenant-field"><label>Parties</label><p>${c.parties}</p></div>
+            <div class="covenant-field"><label>Sign</label><p>${c.sign}</p></div>
+            <div class="covenant-field" style="grid-column:span 2"><label>Promise</label><p>${c.promise}</p></div>
+            <div class="covenant-field" style="grid-column:span 2"><label>Condition</label><p>${c.condition}</p></div>
+          </div>
+          <div class="covenant-fulfillment">
+            <label>Fulfilled in Christ</label>
+            <p>${c.fulfillment}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  // dot colors
+  document.querySelectorAll('.covenant-item::before').forEach(()=>{});
+  COVENANTS_DATA.forEach((c,i)=>{
+    const items=document.querySelectorAll('.covenant-item');
+    if(items[i]) items[i].style.setProperty('--dot-color',c.color);
+    const before=items[i];
+    if(before){
+      const pseudo=document.createElement('style');
+      pseudo.textContent=`.covenant-item:nth-child(${i+1})::before{background:${c.color}!important}`;
+      document.head.appendChild(pseudo);
+    }
+  });
+}
+
+function toggleCovenant(i) {
+  const body = document.getElementById(`cov-${i}`);
+  body.classList.toggle('open');
+}
+
+function renderTypes() {
+  document.getElementById('typesList').innerHTML = TYPES_DATA.map(t => `
+    <div class="type-card">
+      <h3>${t.figure}</h3>
+      <div class="type-refs">OT: ${t.otRef} &nbsp;·&nbsp; NT: ${t.ntRef}</div>
+      <div class="type-comparison">${t.comparison}</div>
+      <div class="type-contrast">${t.contrast}</div>
+    </div>
+  `).join('');
+}
+
+function renderProphecies() {
+  document.getElementById('propheciesList').innerHTML = PROPHECIES_DATA.map(p => `
+    <div class="proph-card">
+      <div class="proph-title">${p.title}</div>
+      <div class="proph-header">
+        <div class="proph-col">
+          <div class="proph-label">Prophecy</div>
+          <div class="proph-ref">${p.otRef}</div>
+          <div class="proph-text">${p.otText}</div>
+        </div>
+        <div class="proph-col">
+          <div class="proph-label">Fulfillment</div>
+          <div class="proph-ref">${p.ntRef}</div>
+          <div class="proph-text">${p.ntText}</div>
+        </div>
+      </div>
+      <div class="proph-theme">${p.theme}</div>
     </div>
   `).join('');
 }
@@ -842,56 +1277,41 @@ async function renderSources() {
 // ════════════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════════════
-
 function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  document.querySelector(`[data-page="${id}"]`).classList.add('active');
-  if (id === 'browse' && kjvData) onBookChange();
-  if (id === 'sources') renderSources();
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const btn=document.querySelector(`[data-page="${id}"]`);
+  if(btn) btn.classList.add('active');
+  if(id==='graph' && !simulation) setTimeout(initGraph,50);
+  if(id==='browse' && kjvData) onBookChange();
+  if(id==='sources') renderSources();
+  if(id==='plan') { buildTrackCards(); renderPlanDays(); }
+  if(id==='christ') { renderCovenants(); renderTypes(); renderProphecies(); }
 }
 
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => showPage(btn.dataset.page));
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>showPage(btn.dataset.page));
 });
 
-// ════════════════════════════════════════════════════════════
-// TOPIC CHIPS
-// ════════════════════════════════════════════════════════════
-
-function buildChips() {
-  const el = document.getElementById('topicChips');
-  FEATURED_TOPICS.forEach(topic => {
-    const chip = document.createElement('button');
-    chip.className = 'chip';
-    chip.textContent = topic;
-    chip.onclick = () => {
-      document.getElementById('queryInput').value = topic;
-      doSearch();
-    };
-    el.appendChild(chip);
+// Inner tabs (Christ in Scripture)
+document.querySelectorAll('.inner-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.inner-section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('inner-'+tab.dataset.inner).classList.add('active');
   });
-}
-
-// ════════════════════════════════════════════════════════════
-// ENTER KEY
-// ════════════════════════════════════════════════════════════
-
-document.getElementById('queryInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doSearch();
 });
 
 // ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
-
 (async () => {
   buildChips();
   buildBrowseSelects();
   await loadKJV();
-  // Re-populate browse chapter counts now that kjvData is loaded
-  if (kjvData) onBookChange();
+  if(kjvData) onBookChange();
 })();
 </script>
 </body>
