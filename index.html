@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intro to the Bible</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:    #fdf8f0;
+      --paper:    #fff9f2;
+      --border:   #e8ddd0;
+      --ink:      #1a1208;
+      --ink-mid:  #4a3f30;
+      --ink-dim:  #7a6f60;
+      --gold:     #b5860e;
+      --blue:     #1a4a8a;
+      --green:    #1a5c30;
+      --red:      #8a1a1a;
+      --shadow:   rgba(26,18,8,0.08);
+      --font-ui:  'Inter', system-ui, sans-serif;
+      --font-ser: 'Merriweather', Georgia, serif;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    nav {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--paper);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .nav-logo {
+      font-family: var(--font-ser);
+      font-size: 1.1rem;
+      color: var(--ink);
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: var(--ink-mid);
+      cursor: pointer;
+      font-family: var(--font-ui);
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: var(--cream); }
+    .nav-btn.active { background: #fef3c7; color: #92400e; font-weight: 600; }
+
+    .nav-section {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.75rem 0.75rem 0.25rem;
+    }
+
+    .nav-spacer { flex: 1; }
+
+    .nav-footer {
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      line-height: 1.6;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .nav-footer a { color: var(--blue); text-decoration: none; }
+
+    main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      max-width: 900px;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      text-align: center;
+      padding: 1rem 0 2rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      font-family: var(--font-ser);
+      font-size: 2rem;
+      color: var(--ink);
+      margin-bottom: 0.35rem;
+    }
+    .page-header p { color: var(--ink-mid); font-size: 0.95rem; }
+
+    /* ── Search ── */
+    .search-label {
+      font-family: var(--font-ser);
+      font-size: 1.2rem;
+      text-align: center;
+      margin-bottom: 0.75rem;
+      color: var(--ink);
+    }
+    .search-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .search-row input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: var(--font-ui);
+      background: white;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-row input:focus { border-color: var(--gold); }
+    .btn-primary {
+      padding: 0.7rem 1.4rem;
+      background: var(--gold);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-ui);
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.88rem;
+      color: var(--ink-mid);
+    }
+    .toggle-row input[type=checkbox] { accent-color: var(--green); width: 16px; height: 16px; }
+
+    /* ── Status / Loader ── */
+    .status-bar {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .status-bar.error { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .status-bar.success { background: #dcfce7; border-color: #86efac; color: #166534; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid #fde68a;
+      border-top-color: #b45309;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Result summary ── */
+    .result-summary {
+      font-size: 0.87rem;
+      color: var(--ink-dim);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-right: 0.4rem;
+    }
+    .badge-ot { background: #fef3c7; color: #92400e; }
+    .badge-nt { background: #dbeafe; color: #1e3a8a; }
+
+    /* ── Verse card ── */
+    .verse-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      border-radius: 8px;
+      padding: 0.9rem 1.2rem;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 1px 4px var(--shadow);
+    }
+    .verse-card.nt { border-left-color: var(--blue); }
+    .verse-ref {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--ink-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .verse-text {
+      font-family: var(--font-ser);
+      font-size: 1rem;
+      line-height: 1.75;
+      color: var(--ink);
+    }
+    .verse-text mark {
+      background: #fef08a;
+      color: var(--ink);
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+
+    /* ── Commentary card ── */
+    .commentary-section { margin-bottom: 1.5rem; }
+    .commentary-section summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--green);
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #c8dfc8;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .commentary-section summary::before { content: "▶"; font-size: 0.65rem; }
+    .commentary-section[open] summary::before { content: "▼"; }
+    .commentary-card {
+      background: #f0f7f0;
+      border: 1px solid #c8dfc8;
+      border-left: 4px solid var(--green);
+      border-radius: 8px;
+      padding: 0.9rem 1.2rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 4px var(--shadow);
+    }
+    .commentary-author {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 0.3rem;
+    }
+    .commentary-text {
+      font-family: var(--font-ser);
+      font-size: 0.93rem;
+      line-height: 1.7;
+      color: var(--ink-mid);
+      font-style: italic;
+    }
+
+    /* ── Browse ── */
+    .browse-controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .browse-controls select {
+      padding: 0.55rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: var(--font-ui);
+      background: white;
+      color: var(--ink);
+      cursor: pointer;
+      outline: none;
+    }
+    .browse-controls select:focus { border-color: var(--gold); }
+
+    /* ── Sources ── */
+    .source-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.8rem;
+    }
+    .source-card h3 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.25rem; }
+    .source-card p { font-size: 0.85rem; color: var(--ink-mid); }
+    .source-approved {
+      display: inline-block;
+      background: #dcfce7; color: #166534;
+      font-size: 0.7rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px;
+      margin-left: 0.5rem;
+    }
+
+    /* ── Sections (pages) ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Quick topics ── */
+    .topic-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+    .chip {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.82rem;
+      color: var(--ink-mid);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-ui);
+    }
+    .chip:hover { border-color: var(--gold); color: var(--gold); background: #fef3c7; }
+
+    /* ── Mobile ── */
+    @media (max-width: 680px) {
+      nav { display: none; }
+      main { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <nav>
+    <div class="nav-logo">✝ Intro to the Bible</div>
+
+    <div class="nav-section">Search</div>
+    <button class="nav-btn active" data-page="qa">Q&amp;A — What does it say?</button>
+
+    <div class="nav-section">Read</div>
+    <button class="nav-btn" data-page="browse">Browse by Book &amp; Chapter</button>
+
+    <div class="nav-section">About</div>
+    <button class="nav-btn" data-page="sources">Approved Sources</button>
+
+    <div class="nav-spacer"></div>
+    <div class="nav-footer">
+      KJV · Public Domain<br/>
+      <a href="https://github.com/Kwang316/christology-bible-app" target="_blank">View on GitHub</a>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- KJV status bar -->
+    <div id="kjvStatus" class="status-bar" style="display:none"></div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- PAGE: Q&A                             -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="page active" id="page-qa">
+
+      <div class="page-header">
+        <h1>✝ Intro to the Bible</h1>
+        <p>Ask a question — receive direct scripture quotes in canonical order</p>
+      </div>
+
+      <div class="search-label">What does the Bible say about…?</div>
+
+      <div class="search-row">
+        <input type="text" id="queryInput" placeholder="e.g. love, math, prayer, forgiveness, wisdom…" />
+        <button class="btn-primary" id="searchBtn" onclick="doSearch()">Search</button>
+      </div>
+
+      <div class="toggle-row">
+        <input type="checkbox" id="showCommentary" checked />
+        <label for="showCommentary">Include approved commentary excerpts</label>
+      </div>
+
+      <div class="topic-chips" id="topicChips"></div>
+
+      <div id="qaResults"></div>
+    </section>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- PAGE: BROWSE                          -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="page" id="page-browse">
+      <h2 style="font-family:var(--font-ser);margin-bottom:1.5rem">Browse by Book &amp; Chapter</h2>
+      <div class="browse-controls">
+        <select id="bookSelect" onchange="onBookChange()"></select>
+        <select id="chapterSelect" onchange="renderBrowse()"></select>
+      </div>
+      <div id="browseResults"></div>
+    </section>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- PAGE: SOURCES                         -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="page" id="page-sources">
+      <h2 style="font-family:var(--font-ser);margin-bottom:0.5rem">Approved Commentary Sources</h2>
+      <p style="color:var(--ink-dim);font-size:0.88rem;margin-bottom:1.5rem">
+        These authors are quoted alongside Bible verses in search results.
+        Only sources marked <strong>approved</strong> in <code>sources/manifest.json</code> appear here.
+      </p>
+      <div id="sourcesList"></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════════
+
+const KJV_URL = 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json';
+const STORAGE_KEY = 'kjv_v2';
+
+const CANONICAL_ORDER = [
+  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy",
+  "Joshua","Judges","Ruth","1 Samuel","2 Samuel",
+  "1 Kings","2 Kings","1 Chronicles","2 Chronicles",
+  "Ezra","Nehemiah","Esther","Job","Psalms","Proverbs",
+  "Ecclesiastes","Song of Solomon","Isaiah","Jeremiah",
+  "Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+  "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah",
+  "Haggai","Zechariah","Malachi",
+  "Matthew","Mark","Luke","John","Acts","Romans",
+  "1 Corinthians","2 Corinthians","Galatians","Ephesians",
+  "Philippians","Colossians","1 Thessalonians","2 Thessalonians",
+  "1 Timothy","2 Timothy","Titus","Philemon","Hebrews",
+  "James","1 Peter","2 Peter","1 John","2 John","3 John",
+  "Jude","Revelation"
+];
+
+const BOOK_ORDER = Object.fromEntries(CANONICAL_ORDER.map((b, i) => [b, i]));
+
+const TOPIC_KEYWORDS = {
+  "math":        ["number","count","measure","multiply","sum","numbered","counted","measured"],
+  "mathematics": ["number","count","measure","multiply","numbered","counted","measured"],
+  "numbers":     ["number","numbered","count","countless"],
+  "love":        ["love","charity","loveth","lovest","beloved","lovingkindness"],
+  "hate":        ["hate","hateth","hated","despise","abhor"],
+  "fear":        ["fear","afraid","terror","dread","fearful","feared"],
+  "wisdom":      ["wisdom","wise","understanding","knowledge","prudent"],
+  "prayer":      ["pray","prayer","praying","supplication","intercede","petition"],
+  "faith":       ["faith","believe","belief","trust","faithful"],
+  "hope":        ["hope","hopeth","expectation"],
+  "money":       ["money","silver","gold","riches","wealth","mammon","covet"],
+  "sin":         ["sin","sinned","transgression","iniquity","wickedness","trespass"],
+  "forgiveness": ["forgive","forgiven","pardon","merciful","mercy","remission"],
+  "salvation":   ["salvation","save","saved","redeem","redeemed","deliverance"],
+  "heaven":      ["heaven","paradise","glory","kingdom"],
+  "hell":        ["hell","fire","destruction","damnation"],
+  "marriage":    ["marriage","married","husband","wife","wed"],
+  "children":    ["children","child","son","daughter","offspring","seed"],
+  "work":        ["work","labor","labour","diligent","slothful","toil"],
+  "truth":       ["truth","true","honest","faithful","verity"],
+  "peace":       ["peace","peaceable","rest","quiet"],
+  "joy":         ["joy","rejoice","rejoiceth","glad","delight"],
+  "anger":       ["anger","wrath","furious","rage","indignation"],
+  "humility":    ["humble","humility","meek","lowly"],
+  "pride":       ["pride","proud","haughty","arrogant","boast"],
+  "death":       ["death","die","died","mortality","perish"],
+  "life":        ["life","live","living","breath","soul"],
+  "suffering":   ["suffering","affliction","tribulation","sorrow","grief","pain"],
+  "healing":     ["heal","healed","healing","restore","cure","health"],
+  "creation":    ["created","creation","heavens","beginning","formed"],
+  "light":       ["light","lamp","shine","brightness"],
+  "darkness":    ["darkness","dark","shadow","night"],
+  "leadership":  ["leader","ruler","king","authority","govern","shepherd"],
+  "justice":     ["justice","righteous","judgment","equity"],
+  "generosity":  ["give","generous","charity","tithe","offering","gift"],
+  "patience":    ["patient","patience","long-suffering","endure","persevere"],
+  "courage":     ["courage","courageous","bold","strong","valiant"],
+  "obedience":   ["obey","obedience","commandment","law","statute"],
+  "family":      ["family","father","mother","brother","sister","household"],
+  "friendship":  ["friend","friendship","companion","fellowship","neighbor"],
+  "strength":    ["strength","strong","might","power","force"],
+  "time":        ["time","season","appointed","eternity"],
+  "trust":       ["trust","rely","confidence","assurance"],
+  "god":         ["God","LORD","Almighty","Creator"],
+  "jesus":       ["Jesus","Christ","Messiah","Saviour","Redeemer"],
+};
+
+const FEATURED_TOPICS = [
+  "love","faith","prayer","wisdom","forgiveness",
+  "peace","hope","salvation","courage","truth"
+];
+
+// ════════════════════════════════════════════════════════════
+// KJV DATA
+// ════════════════════════════════════════════════════════════
+
+let kjvData = null; // flat array: {book, bookIndex, chapter, verse, text}
+
+function setStatus(msg, type = 'loading') {
+  const el = document.getElementById('kjvStatus');
+  if (!msg) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.className = 'status-bar' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
+  el.innerHTML = type === 'loading'
+    ? `<div class="spinner"></div><span>${msg}</span>`
+    : `<span>${msg}</span>`;
+}
+
+async function loadKJV() {
+  // Try localStorage cache first
+  try {
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) {
+      kjvData = JSON.parse(cached);
+      setStatus(null);
+      return;
+    }
+  } catch (e) { /* quota or parse error — fall through */ }
+
+  setStatus('Loading Bible text… (first visit only, ~3 MB — please wait)');
+  try {
+    const res = await fetch(KJV_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const raw = await res.json();
+    kjvData = parseKJV(raw);
+    // Try to cache — might fail if storage is full
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(kjvData)); } catch (_) {}
+    setStatus('Bible text ready.', 'success');
+    setTimeout(() => setStatus(null), 2000);
+  } catch (e) {
+    setStatus(`Could not load Bible text: ${e.message}. Check your internet connection and refresh.`, 'error');
+  }
+}
+
+function parseKJV(raw) {
+  // raw: [{name, chapters: [[v1text, v2text,...], ...]}, ...]
+  const verses = [];
+  raw.forEach((bookObj, bi) => {
+    const bookName = CANONICAL_ORDER[bi] || bookObj.name || bookObj.book || `Book ${bi+1}`;
+    (bookObj.chapters || []).forEach((chapter, ci) => {
+      chapter.forEach((text, vi) => {
+        verses.push({
+          book: bookName,
+          bookIndex: bi,
+          chapter: ci + 1,
+          verse: vi + 1,
+          text: String(text).trim(),
+        });
+      });
+    });
+  });
+  return verses;
+}
+
+// ════════════════════════════════════════════════════════════
+// SEARCH ENGINE
+// ════════════════════════════════════════════════════════════
+
+function expandQuery(topic) {
+  const t = topic.trim().toLowerCase();
+  // Exact match
+  if (TOPIC_KEYWORDS[t]) return TOPIC_KEYWORDS[t];
+  // Partial match
+  for (const [key, kws] of Object.entries(TOPIC_KEYWORDS)) {
+    if (t.includes(key) || key.includes(t)) return kws;
+  }
+  // Fallback: meaningful words from the query
+  const stop = new Set(['what','does','the','bible','say','about','is','are','in','a','an','and','or','how']);
+  return t.split(/\W+/).filter(w => w.length > 2 && !stop.has(w));
+}
+
+function searchKJV(keywords, maxResults = 60) {
+  if (!kjvData) return [];
+  const patterns = keywords.map(kw =>
+    new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i')
+  );
+  const results = [];
+  for (const v of kjvData) {
+    const matched = keywords.filter((_, i) => patterns[i].test(v.text));
+    if (matched.length) {
+      results.push({ ...v, matchedKeywords: matched });
+    }
+    if (results.length >= maxResults * 2) break; // over-collect then trim after sort
+  }
+  // Already in canonical order from parseKJV; slice to maxResults
+  return results.slice(0, maxResults);
+}
+
+function highlight(text, keywords) {
+  let out = escapeHtml(text);
+  for (const kw of keywords) {
+    const re = new RegExp('\\b(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'gi');
+    out = out.replace(re, '<mark>$1</mark>');
+  }
+  return out;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════════════
+// COMMENTARY
+// ════════════════════════════════════════════════════════════
+
+let manifestCache = null;
+
+async function loadManifest() {
+  if (manifestCache) return manifestCache;
+  try {
+    const res = await fetch('sources/manifest.json');
+    const data = await res.json();
+    manifestCache = (data.sources || []).filter(s => s.approved);
+  } catch (_) {
+    manifestCache = [];
+  }
+  return manifestCache;
+}
+
+async function searchCommentary(keywords, maxPerSource = 3) {
+  const sources = await loadManifest();
+  const results = [];
+  for (const src of sources) {
+    try {
+      const res = await fetch(`sources/${src.file}`);
+      const text = await res.text();
+      const paras = text.split(/\n{2,}/).map(p => p.trim()).filter(p => p.length > 40);
+      const patterns = keywords.map(kw =>
+        new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i')
+      );
+      let found = 0;
+      for (const para of paras) {
+        if (found >= maxPerSource) break;
+        if (patterns.some(p => p.test(para))) {
+          results.push({
+            author: src.author,
+            title: src.title,
+            year: src.year,
+            excerpt: para.length > 600 ? para.slice(0, 600) + '…' : para,
+          });
+          found++;
+        }
+      }
+    } catch (_) { /* source file not found — skip */ }
+  }
+  return results;
+}
+
+// ════════════════════════════════════════════════════════════
+// Q&A UI
+// ════════════════════════════════════════════════════════════
+
+async function doSearch() {
+  const query = document.getElementById('queryInput').value.trim();
+  if (!query) return;
+  if (!kjvData) {
+    document.getElementById('qaResults').innerHTML =
+      '<div class="status-bar">Bible text is still loading — please wait a moment.</div>';
+    return;
+  }
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.textContent = 'Searching…';
+
+  const keywords = expandQuery(query);
+  const results  = searchKJV(keywords);
+  const showComm = document.getElementById('showCommentary').checked;
+  const commentary = showComm ? await searchCommentary(keywords) : [];
+
+  btn.disabled = false;
+  btn.textContent = 'Search';
+
+  const el = document.getElementById('qaResults');
+
+  if (!results.length) {
+    el.innerHTML = `<div class="status-bar">
+      No verses found for <strong>${escapeHtml(query)}</strong>.
+      Try a simpler keyword (e.g. "love", "wisdom", "fear").
+    </div>`;
+    return;
+  }
+
+  const otCount = results.filter(r => r.bookIndex < 39).length;
+  const ntCount = results.length - otCount;
+
+  let html = `<div class="result-summary">
+    <strong>${results.length}</strong> verses &mdash;
+    <strong>${otCount}</strong> Old Testament &middot; <strong>${ntCount}</strong> New Testament &middot;
+    Search terms: <em>${keywords.slice(0,6).join(', ')}</em>
+  </div>`;
+
+  if (commentary.length) {
+    html += `<details class="commentary-section" open>
+      <summary>📖 Commentary (${commentary.length} excerpt${commentary.length > 1 ? 's' : ''})</summary>`;
+    for (const c of commentary) {
+      html += `<div class="commentary-card">
+        <div class="commentary-author">${escapeHtml(c.author)} — <em>${escapeHtml(c.title)}</em> (${c.year})</div>
+        <div class="commentary-text">${escapeHtml(c.excerpt)}</div>
+      </div>`;
+    }
+    html += `</details>`;
+  }
+
+  html += `<h3 style="font-family:var(--font-ser);margin-bottom:1rem">Scripture — King James Version</h3>`;
+
+  for (const r of results) {
+    const isOT  = r.bookIndex < 39;
+    const badge = isOT ? 'badge-ot' : 'badge-nt';
+    const label = isOT ? 'OT' : 'NT';
+    const card  = isOT ? 'verse-card' : 'verse-card nt';
+    const ref   = `${r.book} ${r.chapter}:${r.verse}`;
+    const text  = highlight(r.text, r.matchedKeywords);
+    html += `<div class="${card}">
+      <div class="verse-ref"><span class="badge ${badge}">${label}</span>${escapeHtml(ref)}</div>
+      <div class="verse-text">&ldquo;${text}&rdquo;</div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════
+// BROWSE UI
+// ════════════════════════════════════════════════════════════
+
+function buildBrowseSelects() {
+  const bookSel = document.getElementById('bookSelect');
+  CANONICAL_ORDER.forEach(book => {
+    const opt = document.createElement('option');
+    opt.value = book;
+    opt.textContent = book;
+    bookSel.appendChild(opt);
+  });
+  onBookChange();
+}
+
+function getChapterCount(book) {
+  if (!kjvData) return 1;
+  let max = 0;
+  for (const v of kjvData) {
+    if (v.book === book && v.chapter > max) max = v.chapter;
+  }
+  return max || 1;
+}
+
+function onBookChange() {
+  const book    = document.getElementById('bookSelect').value;
+  const chSel   = document.getElementById('chapterSelect');
+  const total   = kjvData ? getChapterCount(book) : 50;
+  chSel.innerHTML = '';
+  for (let i = 1; i <= total; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Chapter ${i}`;
+    chSel.appendChild(opt);
+  }
+  renderBrowse();
+}
+
+function renderBrowse() {
+  const book    = document.getElementById('bookSelect').value;
+  const chapter = parseInt(document.getElementById('chapterSelect').value);
+  const el      = document.getElementById('browseResults');
+
+  if (!kjvData) {
+    el.innerHTML = '<div class="status-bar">Bible text is still loading — please wait.</div>';
+    return;
+  }
+
+  const verses = kjvData.filter(v => v.book === book && v.chapter === chapter);
+  if (!verses.length) { el.innerHTML = '<p>No verses found.</p>'; return; }
+
+  const isOT = BOOK_ORDER[book] < 39;
+  let html = `<h3 style="font-family:var(--font-ser);margin-bottom:1rem">${escapeHtml(book)} ${chapter} — KJV</h3>`;
+  for (const v of verses) {
+    html += `<div class="verse-card${isOT ? '' : ' nt'}">
+      <div class="verse-ref">${escapeHtml(book)} ${chapter}:${v.verse}</div>
+      <div class="verse-text">&ldquo;${escapeHtml(v.text)}&rdquo;</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════
+// SOURCES UI
+// ════════════════════════════════════════════════════════════
+
+async function renderSources() {
+  const sources = await loadManifest();
+  const el = document.getElementById('sourcesList');
+  if (!sources.length) {
+    el.innerHTML = '<p style="color:var(--ink-dim)">No approved sources found in sources/manifest.json.</p>';
+    return;
+  }
+  el.innerHTML = sources.map(s => `
+    <div class="source-card">
+      <h3>${escapeHtml(s.author)} <span class="source-approved">✓ Approved</span></h3>
+      <p><em>${escapeHtml(s.title)}</em> (${s.year})</p>
+      ${s.description ? `<p style="margin-top:0.4rem">${escapeHtml(s.description)}</p>` : ''}
+      <p style="margin-top:0.4rem;font-size:0.78rem;color:var(--ink-dim)">
+        File: <code>sources/${escapeHtml(s.file)}</code>
+      </p>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelector(`[data-page="${id}"]`).classList.add('active');
+  if (id === 'browse' && kjvData) onBookChange();
+  if (id === 'sources') renderSources();
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+
+// ════════════════════════════════════════════════════════════
+// TOPIC CHIPS
+// ════════════════════════════════════════════════════════════
+
+function buildChips() {
+  const el = document.getElementById('topicChips');
+  FEATURED_TOPICS.forEach(topic => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = topic;
+    chip.onclick = () => {
+      document.getElementById('queryInput').value = topic;
+      doSearch();
+    };
+    el.appendChild(chip);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// ENTER KEY
+// ════════════════════════════════════════════════════════════
+
+document.getElementById('queryInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+
+(async () => {
+  buildChips();
+  buildBrowseSelects();
+  await loadKJV();
+  // Re-populate browse chapter counts now that kjvData is loaded
+  if (kjvData) onBookChange();
+})();
+</script>
+</body>
+</html>
