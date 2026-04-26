@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "author": "Matthew Henry",
+      "title": "Commentary on the Whole Bible",
+      "year": 1706,
+      "file": "matthew_henry_excerpts.txt",
+      "description": "Comprehensive verse-by-verse commentary on the entire Bible. Public domain.",
+      "approved": true
+    },
+    {
+      "author": "Charles H. Spurgeon",
+      "title": "The Treasury of David (Psalms)",
+      "year": 1885,
+      "file": "spurgeon_treasury_excerpts.txt",
+      "description": "Spurgeon's landmark commentary on the Psalms. Public domain.",
+      "approved": true
+    },
+    {
+      "author": "John Calvin",
+      "title": "Institutes of the Christian Religion",
+      "year": 1559,
+      "file": "calvin_institutes_excerpts.txt",
+      "description": "Foundational systematic theology text. Public domain.",
+      "approved": false
+    }
+  ]
+}
