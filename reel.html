@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- iOS home-screen app mode -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bible in 40 Days" />
+  <meta name="theme-color" content="#07090f" />
+  <title>Bible in 40 Days · 5 Minutes a Day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07090f;
+      --card: rgba(255,255,255,0.035);
+      --border: rgba(255,255,255,0.08);
+      --text: #f0ece4;
+      --text-dim: rgba(240,236,228,0.55);
+      --text-faint: rgba(240,236,228,0.3);
+      --font-ser: 'Libre Baskerville', Georgia, serif;
+      --font-ui:  'Inter', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      overflow: hidden;
+    }
+
+    /* ── Reel container ── */
+    #reel {
+      height: 100dvh;
+      height: 100vh; /* fallback */
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #reel::-webkit-scrollbar { display: none; }
+
+    /* ── Card ── */
+    .reel-card {
+      height: 100dvh;
+      height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) 28px env(safe-area-inset-bottom, 24px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background gradient — set via inline style --accent */
+    .reel-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 90% 70% at 50% -10%, var(--accent-glow), transparent 65%),
+        radial-gradient(ellipse 60% 50% at 85% 80%,  var(--accent-glow2), transparent 55%),
+        var(--bg);
+      z-index: 0;
+    }
+
+    /* Noise texture overlay for warmth */
+    .reel-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    /* All content sits above the bg */
+    .card-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      height: 100%;
+      justify-content: center;
+    }
+
+    /* ── Top bar ── */
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-top: 8px;
+    }
+    .section-pill {
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--accent-pill);
+      color: var(--accent-text);
+    }
+    .day-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Decorative rule ── */
+    .rule {
+      width: 36px;
+      height: 2px;
+      background: var(--accent-rule);
+      border-radius: 2px;
+      margin: 0 0 20px;
+      opacity: 0.7;
+    }
+
+    /* ── Title ── */
+    .card-title {
+      font-family: var(--font-ser);
+      font-size: clamp(1.3rem, 5vw, 1.65rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 22px;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Verse ── */
+    .verse-block {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-rule);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+    .verse-text {
+      font-family: var(--font-ser);
+      font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+      line-height: 1.75;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .verse-ref {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--accent-ref);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Context ── */
+    .context-text {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    /* ── Messianic thread ── */
+    .thread-block {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 24px;
+    }
+    .thread-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+    .thread-text {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: var(--text-faint);
+    }
+    .thread-text strong { color: var(--accent-ref); font-weight: 600; }
+
+    /* ── Bottom controls ── */
+    .card-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 8px;
+    }
+    .btn-done {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-done:active { transform: scale(0.97); }
+    .btn-done.done { background: rgba(255,255,255,0.08); color: var(--text-dim); border: 1px solid var(--border); }
+    .swipe-hint {
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .swipe-hint::before, .swipe-hint::after {
+      content: '';
+      width: 20px; height: 1px;
+      background: var(--text-faint);
+      opacity: 0.5;
+    }
+
+    /* ── Progress bar at top ── */
+    #progressBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--accent-rule, #fff);
+      transition: width 0.4s ease, background 0.6s;
+      z-index: 100;
+    }
+
+    /* ── Side nav dots ── */
+    #navDots {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 100;
+    }
+    .nav-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .nav-dot.active { background: rgba(255,255,255,0.85); transform: scale(1.4); }
+    .nav-dot.done { background: rgba(255,255,255,0.45); }
+
+    /* ── Back to app link ── */
+    #backLink {
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 16px);
+      left: 16px;
+      z-index: 100;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      font-family: var(--font-ui);
+      transition: color 0.2s;
+    }
+    #backLink:hover { color: rgba(255,255,255,0.6); }
+
+    /* ── Intro card (day 0) ── */
+    .reel-intro {
+      text-align: center;
+      padding: 40px 28px;
+    }
+    .intro-cross {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .intro-title {
+      font-family: var(--font-ser);
+      font-size: clamp(1.6rem, 6vw, 2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .intro-sub {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .intro-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .intro-tag {
+      padding: 5px 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.77rem;
+      color: var(--text-dim);
+    }
+    .intro-start {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .arrow-bounce {
+      animation: bounce 1.6s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(5px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top progress bar -->
+<div id="progressBar"></div>
+
+<!-- Side nav dots -->
+<div id="navDots"></div>
+
+<!-- Back link -->
+<a id="backLink" href="index.html">← Full App</a>
+
+<!-- Reel -->
+<div id="reel">
+
+  <!-- ── INTRO CARD ── -->
+  <div class="reel-card reel-intro"
+    style="
+      --accent-glow:  rgba(180,134,14,0.18);
+      --accent-glow2: rgba(100,60,10,0.12);
+      --accent-pill:  rgba(180,134,14,0.15);
+      --accent-text:  #d4a72a;
+      --accent-rule:  #b5860e;
+      --accent-ref:   #d4a72a;
+      --accent-btn:   #b5860e;
+      --accent-btn-text: #fff;
+    "
+    data-day="0">
+    <div class="card-inner" style="justify-content:center">
+      <span class="intro-cross">✝</span>
+      <div class="intro-title">Bible in<br/>40 Days</div>
+      <div class="intro-sub">
+        5 minutes a day.<br/>
+        The essential Messianic arc — from the first promise in Genesis<br/>to the final "Come, Lord Jesus" in Revelation.
+      </div>
+      <div class="intro-tags">
+        <span class="intro-tag">40 days</span>
+        <span class="intro-tag">5 min each</span>
+        <span class="intro-tag">KJV</span>
+        <span class="intro-tag">Christ-centered</span>
+      </div>
+      <div class="intro-start">
+        <span class="arrow-bounce">↓</span>
+        Scroll down to begin
+        <span class="arrow-bounce">↓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cards injected by JS -->
+  <div id="dayCards"></div>
+
+</div><!-- end reel -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATA — 40 Days Following the Messianic Arc
+// ════════════════════════════════════════════════════════════
+
+const SECTIONS = {
+  creation:    { label:'Creation',         accent:'#1e6b3e', glow:'rgba(30,107,62,0.22)',  glow2:'rgba(10,60,30,0.12)',  pill:'rgba(30,107,62,0.18)',  text:'#4ade80', rule:'#22c55e', ref:'#4ade80', btn:'#166534', btnText:'#fff' },
+  promise:     { label:'The Promise',      accent:'#a16207', glow:'rgba(161,98,7,0.22)',   glow2:'rgba(100,60,5,0.12)',  pill:'rgba(161,98,7,0.18)',   text:'#fbbf24', rule:'#d97706', ref:'#fbbf24', btn:'#92400e', btnText:'#fff' },
+  patriarchs:  { label:'Patriarchs',       accent:'#b45309', glow:'rgba(180,83,9,0.22)',   glow2:'rgba(120,50,5,0.12)',  pill:'rgba(180,83,9,0.18)',   text:'#fb923c', rule:'#f59e0b', ref:'#fb923c', btn:'#92400e', btnText:'#fff' },
+  exodus:      { label:'Exodus',           accent:'#0f766e', glow:'rgba(15,118,110,0.22)', glow2:'rgba(5,80,70,0.12)',   pill:'rgba(15,118,110,0.18)', text:'#2dd4bf', rule:'#14b8a6', ref:'#2dd4bf', btn:'#115e59', btnText:'#fff' },
+  prophecy:    { label:'Prophecy',         accent:'#4338ca', glow:'rgba(67,56,202,0.22)',  glow2:'rgba(40,20,150,0.12)', pill:'rgba(67,56,202,0.18)',  text:'#a5b4fc', rule:'#818cf8', ref:'#a5b4fc', btn:'#312e81', btnText:'#fff' },
+  incarnation: { label:'Incarnation',      accent:'#9f1239', glow:'rgba(159,18,57,0.22)',  glow2:'rgba(100,10,30,0.12)', pill:'rgba(159,18,57,0.18)',  text:'#fda4af', rule:'#f43f5e', ref:'#fda4af', btn:'#881337', btnText:'#fff' },
+  ministry:    { label:'Ministry',         accent:'#1d4ed8', glow:'rgba(29,78,216,0.22)',  glow2:'rgba(10,40,150,0.12)', pill:'rgba(29,78,216,0.18)',  text:'#93c5fd', rule:'#60a5fa', ref:'#93c5fd', btn:'#1e3a8a', btnText:'#fff' },
+  cross:       { label:'The Cross',        accent:'#7f1d1d', glow:'rgba(127,29,29,0.28)',  glow2:'rgba(80,10,10,0.16)',  pill:'rgba(127,29,29,0.22)',  text:'#fca5a5', rule:'#ef4444', ref:'#fca5a5', btn:'#7f1d1d', btnText:'#fff' },
+  risen:       { label:'Risen',            accent:'#d97706', glow:'rgba(217,119,6,0.28)',  glow2:'rgba(180,90,5,0.15)',  pill:'rgba(217,119,6,0.22)',  text:'#fde68a', rule:'#fbbf24', ref:'#fde68a', btn:'#b45309', btnText:'#fff' },
+  newcreation: { label:'New Creation',     accent:'#7c3aed', glow:'rgba(124,58,237,0.25)', glow2:'rgba(80,20,200,0.14)', pill:'rgba(124,58,237,0.2)',  text:'#c4b5fd', rule:'#a78bfa', ref:'#c4b5fd', btn:'#5b21b6', btnText:'#fff' },
+};
+
+const DAYS = [
+  // ── CREATION ──────────────────────────────────────────────
+  {
+    section: 'creation',
+    title:   'In the Beginning',
+    verse:   '"In the beginning God created the heaven and the earth."',
+    ref:     'Genesis 1:1',
+    passage: 'Genesis 1',
+    context: 'The Bible's first word is not "man" but "God." Before anything existed, He did. Everything — matter, time, energy, life, beauty — is His deliberate creation. You are not an accident.',
+    thread:  'The same God who speaks creation into existence in Genesis 1 will say "Behold, I make all things new" in Revelation 21:5. The story begins and ends with His creative word.',
+  },
+  {
+    section: 'creation',
+    title:   'Made in His Image',
+    verse:   '"So God created man in his own image, in the image of God created he him; male and female created he them."',
+    ref:     'Genesis 1:27',
+    passage: 'Genesis 1',
+    context: 'Of all creation, only humanity bears the "image of God" — reason, moral sense, creativity, the capacity for relationship. This is your dignity. This is why your life matters infinitely.',
+    thread:  'Because we bear God\'s image, our brokenness is not just a moral problem — it is a cosmic tragedy. And restoration through Christ is not just forgiveness — it is the restoration of what we were made to be.',
+  },
+  {
+    section: 'promise',
+    title:   'The First Promise',
+    verse:   '"And I will put enmity between thee and the woman, and between thy seed and her seed; it shall bruise thy head, and thou shalt bruise his heel."',
+    ref:     'Genesis 3:15',
+    passage: 'Genesis 3',
+    context: 'Immediately after the Fall, God makes the first gospel promise — called the "protevangelium." A descendant of Eve will one day crush the serpent. The rescue mission begins before humanity leaves the garden.',
+    thread:  '<strong>This verse is the seed of the entire Bible.</strong> Every page from here to Revelation is asking: Who is this offspring? When will He come? How will He defeat evil? The answer: Jesus, AD 33, the cross.',
+  },
+
+  // ── PATRIARCHS ────────────────────────────────────────────
+  {
+    section: 'patriarchs',
+    title:   'All Nations Blessed',
+    verse:   '"In thee shall all families of the earth be blessed."',
+    ref:     'Genesis 12:3',
+    passage: 'Genesis 12',
+    context: 'God calls one man — Abraham — out of an idol-worshiping city, and makes an astonishing promise: through his family, every nation on earth will be blessed. This is not nationalism; it\'s the widest possible mission.',
+    thread:  'Paul calls this "the gospel preached beforehand to Abraham" (Gal 3:8). The blessing flows through Abraham\'s seed — "which is Christ" (Gal 3:16). Every believer from every nation is Abraham\'s child (Gal 3:7).',
+  },
+  {
+    section: 'patriarchs',
+    title:   'God Will Provide the Lamb',
+    verse:   '"And Abraham said, My son, God will provide himself a lamb for a burnt offering."',
+    ref:     'Genesis 22:8',
+    passage: 'Genesis 22',
+    context: 'Abraham raises the knife over his beloved son Isaac — and God stops him, providing a ram instead. Abraham names the place "The LORD Will Provide." This is the most vivid pre-figuring of Calvary in the entire Old Testament.',
+    thread:  '"He that spared not his own Son, but delivered him up for us all" (Rom 8:32). The Father Abraham did not have to make, God the Father made willingly. There was no substitute for Jesus.',
+  },
+
+  // ── EXODUS ────────────────────────────────────────────────
+  {
+    section: 'exodus',
+    title:   'The Passover Blood',
+    verse:   '"And the blood shall be to you for a token upon the houses where ye are: and when I see the blood, I will pass over you."',
+    ref:     'Exodus 12:13',
+    passage: 'Exodus 12',
+    context: 'God delivers Israel from Egypt through a lamb without blemish. Its blood on the doorpost causes the angel of death to "pass over" that household. Salvation is not earned — it is sheltered under the blood.',
+    thread:  '"Christ our passover is sacrificed for us" (1 Cor 5:7). John the Baptist sees Jesus and cries: "Behold the Lamb of God, which taketh away the sin of the world" (John 1:29). The Passover was always pointing here.',
+  },
+  {
+    section: 'exodus',
+    title:   'Holy Is the LORD',
+    verse:   '"Thou shalt have no other gods before me… I the LORD thy God am a jealous God."',
+    ref:     'Exodus 20:3, 5',
+    passage: 'Exodus 20',
+    context: 'At Sinai, God gives Israel the Ten Commandments — the clearest statement of His moral character. The law does not save; it reveals what holiness looks like, and exposes our inability to meet God\'s standard on our own.',
+    thread:  '"The law was our schoolmaster to bring us unto Christ, that we might be justified by faith" (Gal 3:24). The law prepares the heart for grace by showing us our desperate need for a mediator.',
+  },
+  {
+    section: 'exodus',
+    title:   'Look and Live',
+    verse:   '"And Moses made a serpent of brass…and it came to pass, that if a serpent had bitten any man, when he beheld the serpent of brass, he lived."',
+    ref:     'Numbers 21:9',
+    passage: 'Numbers 21:4–9',
+    context: 'Israel rebelled in the wilderness and serpents bit the people. God\'s remedy: look at the bronze serpent lifted on a pole. Not medicine, not effort — only a look of faith at the thing lifted up.',
+    thread:  'Jesus quotes this directly: "And as Moses lifted up the serpent in the wilderness, even so must the Son of Man be lifted up: That whosoever believeth in him should not perish, but have eternal life" (John 3:14–15).',
+  },
+  {
+    section: 'exodus',
+    title:   'A Prophet Like Me',
+    verse:   '"The LORD thy God will raise up unto thee a Prophet from the midst of thee, of thy brethren, like unto me; unto him ye shall hearken."',
+    ref:     'Deuteronomy 18:15',
+    passage: 'Deuteronomy 18:15–19',
+    context: 'Moses, the greatest figure in Israel, says someone greater is coming — a prophet like himself, but more. Israel must listen to him. For centuries, the question hung in the air: Who is this prophet?',
+    thread:  'Peter stands in Jerusalem after Pentecost and answers: "For Moses truly said…A prophet shall the Lord your God raise up unto you of your brethren, like unto me; him shall ye hear in all things" — pointing to Jesus (Acts 3:22).',
+  },
+
+  // ── PROMISE FULFILLED ─────────────────────────────────────
+  {
+    section: 'promise',
+    title:   'The Kinsman-Redeemer',
+    verse:   '"The man is near of kin unto us, one of our next kinsmen."',
+    ref:     'Ruth 2:20',
+    passage: 'Ruth 2–4',
+    context: 'Ruth — a Gentile widow — comes to Israel destitute. A wealthy man named Boaz, a near kinsman, steps forward to redeem her: paying her debt, restoring her inheritance, and marrying her. He did it for love.',
+    thread:  'The Hebrew word is "goel" — kinsman-redeemer. To redeem, you must be kin (human) and able to pay the price. Jesus became flesh to be our kinsman; He paid with His own blood. This is the gospel in miniature.',
+  },
+  {
+    section: 'promise',
+    title:   'An Eternal Throne',
+    verse:   '"And thine house and thy kingdom shall be established for ever before thee: thy throne shall be established for ever."',
+    ref:     '2 Samuel 7:16',
+    passage: '2 Samuel 7:8–16',
+    context: 'God makes an unconditional promise to David: one of his descendants will rule forever. David\'s own kingdom will end, but this promise will not. For the next 1,000 years, Israel watched and waited.',
+    thread:  'The angel Gabriel tells Mary: "The Lord God shall give unto him the throne of his father David: And he shall reign over the house of Jacob for ever; and of his kingdom there shall be no end" (Luke 1:32–33). Fulfilled.',
+  },
+
+  // ── PROPHECY ──────────────────────────────────────────────
+  {
+    section: 'prophecy',
+    title:   'The Cross — 1,000 Years Before',
+    verse:   '"They pierced my hands and my feet…They part my garments among them, and cast lots upon my vesture."',
+    ref:     'Psalm 22:16–18',
+    passage: 'Psalm 22',
+    context: 'David writes Psalm 22 around 1000 BC. Crucifixion is a Roman method that will not exist for another 600+ years. Yet here: hands and feet pierced, garments divided by lots, crowds mocking, the very words Jesus will cry from the cross.',
+    thread:  'Matthew 27 records soldiers casting lots for Jesus\' garments. John 19 notes it "that the scripture might be fulfilled." Psalm 22 ends not in death but triumph: "they shall come, and shall declare his righteousness." The resurrection was always the plan.',
+  },
+  {
+    section: 'prophecy',
+    title:   'The Good Shepherd',
+    verse:   '"The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures: he leadeth me beside the still waters."',
+    ref:     'Psalm 23:1–2',
+    passage: 'Psalm 23',
+    context: 'David the shepherd writes of God as His shepherd. This is one of the most memorized and loved passages in all of Scripture. Its calm, personal intimacy — "my shepherd" — speaks of a relationship, not a religion.',
+    thread:  'Jesus says "I am the good shepherd: the good shepherd giveth his life for the sheep" (John 10:11). David\'s shepherd is not merely God-in-general. He is Jesus, who lays down His life to bring us into still waters.',
+  },
+  {
+    section: 'prophecy',
+    title:   'Sit at My Right Hand',
+    verse:   '"The LORD said unto my Lord, Sit thou at my right hand, until I make thine enemies thy footstool."',
+    ref:     'Psalm 110:1',
+    passage: 'Psalm 110',
+    context: 'David writes about "my Lord" — someone greater than David who sits at God\'s right hand. This is the most-quoted Old Testament verse in the entire New Testament. Who is David\'s Lord?',
+    thread:  'Jesus asks the Pharisees: "If David then call him Lord, how is he his son?" (Matt 22:45) — silencing them. Peter at Pentecost: "Therefore being by the right hand of God exalted…" (Acts 2:33). The answer is Jesus.',
+  },
+  {
+    section: 'prophecy',
+    title:   'Immanuel — God With Us',
+    verse:   '"Therefore the Lord himself shall give you a sign; Behold, a virgin shall conceive, and bear a son, and shall call his name Immanuel."',
+    ref:     'Isaiah 7:14',
+    passage: 'Isaiah 7:10–14',
+    context: 'The prophet Isaiah, writing around 735 BC, promises a supernatural sign: a virgin will conceive. The child\'s name will mean "God with us." For 700 years, this promise waited for its fulfillment.',
+    thread:  '"Now all this was done, that it might be fulfilled which was spoken of the Lord by the prophet, saying, Behold, a virgin shall be with child, and shall bring forth a son, and they shall call his name Emmanuel" (Matt 1:22–23).',
+  },
+  {
+    section: 'prophecy',
+    title:   'The Mighty God',
+    verse:   '"For unto us a child is born, unto us a son is given: and his name shall be called Wonderful, Counsellor, The mighty God, The everlasting Father, The Prince of Peace."',
+    ref:     'Isaiah 9:6',
+    passage: 'Isaiah 9:2–7',
+    context: 'Isaiah announces the coming one with names that could only belong to God Himself — not a prophet, not a king, but the Mighty God, the Everlasting Father. The Messiah will be fully divine. Written 700 years before Bethlehem.',
+    thread:  '"In the beginning was the Word, and the Word was with God, and the Word was God…And the Word was made flesh, and dwelt among us" (John 1:1, 14). Isaiah\'s child and John\'s Word are the same person.',
+  },
+  {
+    section: 'prophecy',
+    title:   'Prepare the Way',
+    verse:   '"The voice of him that crieth in the wilderness, Prepare ye the way of the LORD, make straight in the desert a highway for our God."',
+    ref:     'Isaiah 40:3',
+    passage: 'Isaiah 40:1–5',
+    context: 'Written during Israel\'s darkest hour, Isaiah 40 opens with "Comfort ye, comfort ye my people." A messenger will come before the Lord to prepare His way. This messenger will announce the King\'s arrival.',
+    thread:  'All four Gospels identify John the Baptist as this voice in the wilderness (Matt 3:3; Mark 1:3; Luke 3:4; John 1:23). When John prepares the way for Jesus, Isaiah\'s 700-year-old prophecy finds its man.',
+  },
+  {
+    section: 'prophecy',
+    title:   'Wounded for Our Sins',
+    verse:   '"But he was wounded for our transgressions, he was bruised for our iniquities: the chastisement of our peace was upon him; and with his stripes we are healed."',
+    ref:     'Isaiah 53:5',
+    passage: 'Isaiah 53',
+    context: 'This chapter is so precise in describing the death of Christ that Jewish and Christian scholars have debated it for centuries. Written 700 years before the cross: despised, rejected, bearing our griefs, pierced, buried with the rich, risen again.',
+    thread:  '"Who his own self bare our sins in his own body on the tree, that we, being dead to sins, should live unto righteousness: by whose stripes ye were healed" (1 Pet 2:24). Peter quotes Isaiah 53 and simply writes: Jesus.',
+  },
+  {
+    section: 'prophecy',
+    title:   'Written on Your Heart',
+    verse:   '"I will put my law in their inward parts, and write it in their hearts; and will be their God, and they shall be my people."',
+    ref:     'Jeremiah 31:33',
+    passage: 'Jeremiah 31:31–34',
+    context: 'Jeremiah, prophesying as Jerusalem falls, announces something completely new: a covenant not written on stone tablets but on the heart. God will not just give commands — He will give the desire to obey them.',
+    thread:  'Jesus holds up a cup at the Last Supper and says: "This cup is the new covenant in my blood" (Luke 22:20). Hebrews 8 quotes this whole passage and says it is now fulfilled. The Spirit writes on the heart what the Law wrote on stone.',
+  },
+  {
+    section: 'prophecy',
+    title:   'Born in Bethlehem',
+    verse:   '"But thou, Bethlehem Ephratah, though thou be little among the thousands of Judah, yet out of thee shall he come forth unto me that is to be ruler in Israel; whose goings forth have been from of old, from everlasting."',
+    ref:     'Micah 5:2',
+    passage: 'Micah 5:2',
+    context: 'Among all the cities in the world, the prophet Micah pinpoints Bethlehem — a small village south of Jerusalem — as the birthplace of the coming ruler. He adds something stunning: this person\'s origin is "from everlasting."',
+    thread:  'When the wise men arrive in Jerusalem, Herod\'s priests quote Micah 5:2 without hesitation (Matt 2:5–6). The eternal One who has no beginning is born in the city Micah named, 700 years after Micah named it.',
+  },
+  {
+    section: 'prophecy',
+    title:   'The King on a Donkey',
+    verse:   '"Rejoice greatly, O daughter of Zion…behold, thy King cometh unto thee: he is just, and having salvation; lowly, and riding upon an ass, and upon a colt the foal of an ass."',
+    ref:     'Zechariah 9:9',
+    passage: 'Zechariah 9:9',
+    context: 'Written around 520 BC, Zechariah describes the arrival of Israel\'s king — not on a war horse, but on a donkey. A king of peace, humble, bearing salvation. This is not the conquering military messiah Israel expected.',
+    thread:  '"All this was done, that it might be fulfilled which was spoken by the prophet, saying, Tell ye the daughter of Sion, Behold, thy King cometh unto thee, meek, and sitting upon an ass" (Matt 21:4–5). Palm Sunday was scripted 500 years early.',
+  },
+
+  // ── INCARNATION ───────────────────────────────────────────
+  {
+    section: 'incarnation',
+    title:   'The Word Became Flesh',
+    verse:   '"In the beginning was the Word, and the Word was with God, and the Word was God…And the Word was made flesh, and dwelt among us."',
+    ref:     'John 1:1, 14',
+    passage: 'John 1:1–18',
+    context: 'John opens his Gospel echoing Genesis: "In the beginning." The eternal Word — fully God, the agent of all creation — enters His own creation as a human being. The incarnation is the hinge of all history.',
+    thread:  'Every prophecy you\'ve read pointed here. The seed of the woman (Gen 3:15), the child born Immanuel (Is 7:14), the Mighty God (Is 9:6) — they are all this: the Word made flesh, dwelling among us.',
+  },
+  {
+    section: 'incarnation',
+    title:   'Good News of Great Joy',
+    verse:   '"Fear not: for, behold, I bring you good tidings of great joy, which shall be to all people. For unto you is born this day in the city of David a Saviour, which is Christ the Lord."',
+    ref:     'Luke 2:10–11',
+    passage: 'Luke 2:1–20',
+    context: 'The announcement of Jesus\' birth goes first to shepherds — the most socially insignificant people available. Not to kings, not to priests. The gospel always comes to the humble and lowly first.',
+    thread:  'The angel calls Him "a Saviour, which is Christ the Lord" — three titles in one breath. Saviour (what He does), Christ/Messiah (His role), Lord (who He is). Every covenant and every prophecy is this baby.',
+  },
+
+  // ── MINISTRY ──────────────────────────────────────────────
+  {
+    section: 'ministry',
+    title:   'For God So Loved',
+    verse:   '"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."',
+    ref:     'John 3:16',
+    passage: 'John 3:1–21',
+    context: 'Nicodemus, a religious expert, comes to Jesus at night with questions. Jesus tells him: you must be born again — a complete spiritual rebirth, not a moral improvement. Then comes this sentence: the gospel in one breath.',
+    thread:  'Notice the three things: God\'s motive (love), God\'s method (the gift of His Son), and the human condition (belief). This is not about being good enough. It is about receiving a gift freely given.',
+  },
+  {
+    section: 'ministry',
+    title:   'The Kingdom Is Upside Down',
+    verse:   '"Blessed are the poor in spirit: for theirs is the kingdom of heaven…Blessed are the meek: for they shall inherit the earth."',
+    ref:     'Matthew 5:3, 5',
+    passage: 'Matthew 5:1–12',
+    context: 'Jesus opens the Sermon on the Mount by declaring blessed the opposite people the world prizes. The poor, the mourning, the meek, the persecuted — these are the citizens of His kingdom. He is inaugurating a new way of being human.',
+    thread:  'This is not a self-help program. It is a description of those who have been remade by grace. The meek inherit the earth because the Meek One inherited it first — and shares it with all who come to Him.',
+  },
+  {
+    section: 'ministry',
+    title:   'The Spirit of the Lord',
+    verse:   '"The Spirit of the Lord is upon me, because he hath anointed me to preach the gospel to the poor…to set at liberty them that are bruised."',
+    ref:     'Luke 4:18',
+    passage: 'Luke 4:16–21',
+    context: 'Jesus stands in the synagogue, reads this passage from Isaiah 61, rolls up the scroll, sits down, and says: "This day is this scripture fulfilled in your ears." He is declaring Himself the Anointed One — the Messiah — publicly.',
+    thread:  'The word "Christ" in Greek and "Messiah" in Hebrew both mean Anointed One. When Jesus says "the Spirit of the Lord is upon me," He is claiming: I am the One Isaiah promised. The anointed prophet, priest, and king in person.',
+  },
+  {
+    section: 'ministry',
+    title:   'The Bread of Life',
+    verse:   '"I am the bread of life: he that cometh to me shall never hunger; and he that believeth on me shall never thirst."',
+    ref:     'John 6:35',
+    passage: 'John 6:32–40',
+    context: 'The crowd wants Jesus to give them bread like Moses did in the wilderness. Jesus says: Moses gave you physical bread; I AM the bread. Not "I give" — "I am." The thing you really need is not something I have. It is me.',
+    thread:  'Manna in the wilderness (Ex 16) was always a picture of this. The bread that came down from heaven to sustain life was always pointing to the One who would come down from heaven to give eternal life.',
+  },
+  {
+    section: 'ministry',
+    title:   'The Good Shepherd Lays Down His Life',
+    verse:   '"I am the good shepherd: the good shepherd giveth his life for the sheep."',
+    ref:     'John 10:11',
+    passage: 'John 10:7–18',
+    context: 'Jesus identifies Himself with the shepherd of Psalm 23 — but adds something David could never write: "I lay down my life for the sheep." The God who shepherds will shepherd through death itself. Voluntarily.',
+    thread:  '"No man taketh it from me, but I lay it down of myself" (John 10:18). The cross was not an accident, not a failure, not something that happened to Jesus. It was His mission, stated clearly in His own words, months before it happened.',
+  },
+  {
+    section: 'ministry',
+    title:   'I Am the Resurrection',
+    verse:   '"I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live: And whosoever liveth and believeth in me shall never die."',
+    ref:     'John 11:25–26',
+    passage: 'John 11:1–44',
+    context: 'Lazarus is dead four days. His sisters are grief-stricken. Jesus does not say "I will perform a resurrection" — He says "I AM the resurrection." Then He proves it by calling Lazarus out of the tomb by name.',
+    thread:  'This miracle is a sign — a preview. Jesus does for Lazarus what He will do for all who believe: death reversed, the grave powerless, the name called. Lazarus\' resurrection points to Christ\'s, which guarantees ours.',
+  },
+
+  // ── THE CROSS ─────────────────────────────────────────────
+  {
+    section: 'cross',
+    title:   'The New Covenant in My Blood',
+    verse:   '"This cup is the new covenant in my blood, which is shed for you."',
+    ref:     'Luke 22:20',
+    passage: 'Luke 22:14–23',
+    context: 'At the Last Supper, Jesus takes the Passover cup — the cup Israel had drunk for 1,500 years — and redefines it: this is the new covenant (Jer 31) sealed by His blood. He is the Passover Lamb and the covenant mediator simultaneously.',
+    thread:  'Every covenant from Eden to David was pointing here. "The blood of the new testament, which is shed for many for the remission of sins" (Matt 26:28). This single cup carries the weight of the entire Old Testament.',
+  },
+  {
+    section: 'cross',
+    title:   'My God, My God',
+    verse:   '"And about the ninth hour Jesus cried with a loud voice, saying…My God, my God, why hast thou forsaken me?"',
+    ref:     'Matthew 27:46',
+    passage: 'Matthew 27:32–50',
+    context: 'These words are the opening line of Psalm 22 — written 1,000 years before. At the cross, the weight of human sin falls on the Son of God. For the first and only time in eternity, the Father turns away. This is the cost of our forgiveness.',
+    thread:  'He was forsaken so we would not be. "For he hath made him to be sin for us, who knew no sin; that we might be made the righteousness of God in him" (2 Cor 5:21). The great exchange happened on this cross.',
+  },
+  {
+    section: 'cross',
+    title:   'It Is Finished',
+    verse:   '"When Jesus therefore had received the vinegar, he said, It is finished: and he bowed his head, and gave up the ghost."',
+    ref:     'John 19:30',
+    passage: 'John 19:28–37',
+    context: '"It is finished" — in Greek: tetelestai. A word written on paid-in-full receipts in the ancient world. Jesus is not saying "I am finished." He is declaring the debt fully paid, the mission complete, the work done.',
+    thread:  'Everything from Genesis 3:15 — every sacrifice, every prophecy, every type — was pointing to this moment. The bronze serpent, the Passover lamb, Isaac on the altar, the Suffering Servant of Isaiah 53: finished, here, now, once for all.',
+  },
+
+  // ── RISEN ─────────────────────────────────────────────────
+  {
+    section: 'risen',
+    title:   'He Is Not Here — He Is Risen',
+    verse:   '"He is not here, but is risen: remember how he spake unto you when he was yet in Galilee."',
+    ref:     'Luke 24:6',
+    passage: 'Luke 24:1–12',
+    context: 'The women come to the tomb with spices to anoint a dead body. They find it empty. Angels deliver the most important sentence in human history: He is not here — He is risen. Everything changes.',
+    thread:  '"And if Christ be not risen, then is our preaching vain, and your faith is also vain" (1 Cor 15:14). Paul stakes everything on the resurrection. So do we. The empty tomb is not a legend — it is the linchpin of the gospel.',
+  },
+  {
+    section: 'risen',
+    title:   'Beginning with Moses',
+    verse:   '"And beginning at Moses and all the prophets, he expounded unto them in all the scriptures the things concerning himself."',
+    ref:     'Luke 24:27',
+    passage: 'Luke 24:13–35',
+    context: 'Two disciples walk to Emmaus, heartbroken. A stranger joins them — it is the risen Jesus, but they don\'t recognize Him. He opens the Old Testament and shows them how all of it — every book — was pointing to Him all along.',
+    thread:  'This is the key to reading the Old Testament. Jesus does not say the Scriptures predict a few events in His life. He says the Scriptures are all about Him — Moses, the Psalms, the Prophets — all of it converges on Christ.',
+  },
+  {
+    section: 'risen',
+    title:   'My Lord and My God',
+    verse:   '"And Thomas answered and said unto him, My Lord and my God."',
+    ref:     'John 20:28',
+    passage: 'John 20:19–29',
+    context: 'Thomas refuses to believe without seeing. Jesus appears, shows His wounds, and Thomas collapses in worship: "My Lord and my God." This is the highest confession in John\'s Gospel. Not "my teacher." My Lord. My God.',
+    thread:  'Jesus accepts this worship without correction — unlike angels who say "worship God" (Rev 22:9) and unlike Paul and Barnabas who tear their clothes when worshiped (Acts 14:14). He is God in the flesh.',
+  },
+
+  // ── NEW CREATION ──────────────────────────────────────────
+  {
+    section: 'newcreation',
+    title:   'Pentecost — The Spirit Poured Out',
+    verse:   '"Therefore being by the right hand of God exalted…he hath shed forth this, which ye now see and hear."',
+    ref:     'Acts 2:33',
+    passage: 'Acts 2:1–41',
+    context: 'Fifty days after Passover, the Holy Spirit falls on the disciples in Jerusalem. Peter stands and preaches: Jesus of Nazareth was crucified, God raised Him, and He has now poured out the Spirit as He promised. Three thousand people believe.',
+    thread:  'This is the New Covenant coming to life. "I will put my law in their inward parts" (Jer 31:33). "I will write it in their hearts" — not in stone, but by the Spirit. The church is born as the covenant community of the new creation.',
+  },
+  {
+    section: 'newcreation',
+    title:   'All the Promises Are Yes',
+    verse:   '"For all the promises of God in him are yea, and in him Amen, unto the glory of God by us."',
+    ref:     '2 Corinthians 1:20',
+    passage: '2 Corinthians 1:18–22',
+    context: 'Paul makes a breathtaking claim: every single promise God has ever made — to Adam, to Abraham, to Moses, to David, through all the prophets — finds its "Yes" in Jesus. He is not one fulfillment. He is the fulfillment of all.',
+    thread:  'Look back at all 39 days. Every promise, every type, every covenant, every prophecy — Genesis 3:15 through Zechariah 9:9 — Paul says they are all "Yes" in Christ. The Bible has one hero, one theme, one story.',
+  },
+  {
+    section: 'newcreation',
+    title:   'Behold, I Make All Things New',
+    verse:   '"And he that sat upon the throne said, Behold, I make all things new…I am Alpha and Omega, the beginning and the end."',
+    ref:     'Revelation 21:5–6',
+    passage: 'Revelation 21:1–7',
+    context: 'The last two chapters of the Bible describe the new creation — a renewed heaven and earth where God dwells with His people, there is no more death or crying or pain, and the river of life flows freely. The story ends as it began: God with humanity.',
+    thread:  'The tree of life withheld in Genesis 3 is freely available in Revelation 22:2. The exile begun at Eden is ended forever. The promise of Genesis 3:15 is completely fulfilled: the serpent is defeated, the creation is restored, and the King has come home.',
+  },
+  {
+    section: 'newcreation',
+    title:   'Come, Lord Jesus',
+    verse:   '"He which testifieth these things saith, Surely I come quickly. Amen. Even so, come, Lord Jesus."',
+    ref:     'Revelation 22:20',
+    passage: 'Revelation 22:12–21',
+    context: 'The final words of the Bible. Jesus says "I am coming quickly." John\'s response — and the response of every believer from every generation — is simply: "Come, Lord Jesus." The Bible ends with a prayer, not a doctrine.',
+    thread:  'You have traced the entire Messianic arc: from the first broken promise in a garden, through 4,000 years of covenant and prophecy, through the cross and the empty tomb, to this moment. The story is not over. He is still coming.',
+  },
+];
+
+// ════════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════════
+function getCompleted() {
+  try { return new Set(JSON.parse(localStorage.getItem('reel_done')||'[]')); }
+  catch(_) { return new Set(); }
+}
+function setCompleted(s) {
+  try { localStorage.setItem('reel_done', JSON.stringify([...s])); } catch(_) {}
+}
+
+function buildCards() {
+  const done = getCompleted();
+  const container = document.getElementById('dayCards');
+  const dots = document.getElementById('navDots');
+
+  container.innerHTML = DAYS.map((d, i) => {
+    const sec = SECTIONS[d.section];
+    const isDone = done.has(i);
+    return `
+    <div class="reel-card" data-day="${i+1}"
+      style="
+        --accent-glow:  ${sec.glow};
+        --accent-glow2: ${sec.glow2};
+        --accent-pill:  ${sec.pill};
+        --accent-text:  ${sec.text};
+        --accent-rule:  ${sec.rule};
+        --accent-ref:   ${sec.ref};
+        --accent-btn:   ${sec.btn};
+        --accent-btn-text: ${sec.btnText};
+      ">
+      <div class="card-inner">
+        <div class="card-top">
+          <div class="section-pill">${sec.label}</div>
+          <div class="day-label">Day ${i+1} of ${DAYS.length}</div>
+        </div>
+        <div class="rule"></div>
+        <div class="card-title">${d.title}</div>
+        <div class="verse-block">
+          <div class="verse-text">${d.verse}</div>
+          <div class="verse-ref">${d.ref} &nbsp;·&nbsp; ${d.passage}</div>
+        </div>
+        <div class="context-text">${d.context}</div>
+        <div class="thread-block">
+          <span class="thread-icon">🔑</span>
+          <div class="thread-text">${d.thread}</div>
+        </div>
+        <div class="card-bottom">
+          <button class="btn-done ${isDone?'done':''}" onclick="toggleDone(${i},this)">
+            ${isDone ? '✓ Completed' : '✓ Mark as Read'}
+          </button>
+          ${i < DAYS.length-1 ? '<div class="swipe-hint">swipe up for next day</div>' : '<div class="swipe-hint" style="color:rgba(255,255,255,0.5)">You\'ve finished the arc ✦</div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Nav dots (one per day, grouped into sets of 8)
+  dots.innerHTML = DAYS.map((_, i) =>
+    `<div class="nav-dot ${done.has(i)?'done':''}" id="dot-${i}" onclick="jumpToDay(${i})" title="Day ${i+1}"></div>`
+  ).join('');
+}
+
+function toggleDone(index, btn) {
+  const done = getCompleted();
+  if (done.has(index)) {
+    done.delete(index);
+    btn.className = 'btn-done';
+    btn.textContent = '✓ Mark as Read';
+    const dot = document.getElementById(`dot-${index}`);
+    if (dot) dot.classList.remove('done');
+  } else {
+    done.add(index);
+    btn.className = 'btn-done done';
+    btn.textContent = '✓ Completed';
+    const dot = document.getElementById(`dot-${index}`);
+    if (dot) dot.classList.add('done');
+  }
+  setCompleted(done);
+  updateProgressBar(index + 1); // +1 offset for intro card
+}
+
+function jumpToDay(index) {
+  const cards = document.querySelectorAll('.reel-card');
+  // index+1 because cards[0] is the intro
+  if (cards[index+1]) cards[index+1].scrollIntoView({ behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════════════════════════
+// SCROLL OBSERVER — update progress bar & active dot
+// ════════════════════════════════════════════════════════════
+let currentAccent = SECTIONS.creation.rule;
+
+function updateProgressBar(cardIndex) {
+  const total = DAYS.length + 1; // +1 for intro
+  const pct = Math.round((cardIndex / total) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  // Update color based on section
+  if (cardIndex > 0 && cardIndex <= DAYS.length) {
+    const sec = SECTIONS[DAYS[cardIndex-1].section];
+    bar.style.background = sec.rule;
+  }
+}
+
+function setupScrollObserver() {
+  const options = { root: document.getElementById('reel'), threshold: 0.6 };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const dayNum = parseInt(entry.target.dataset.day);
+      // Update progress bar
+      updateProgressBar(dayNum);
+      // Update nav dots
+      document.querySelectorAll('.nav-dot').forEach((dot, i) => dot.classList.remove('active'));
+      if (dayNum > 0) {
+        const dot = document.getElementById(`dot-${dayNum-1}`);
+        if (dot) dot.classList.add('active');
+      }
+    });
+  }, options);
+
+  document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
+}
+
+// ════════════════════════════════════════════════════════════
+// KEYBOARD NAV
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  const reel = document.getElementById('reel');
+  const h = window.innerHeight;
+  if (e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    reel.scrollBy({ top: h, behavior: 'smooth' });
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    reel.scrollBy({ top: -h, behavior: 'smooth' });
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+buildCards();
+updateProgressBar(0);
+setupScrollObserver();
+</script>
+</body>
+</html>
