@@ -35,32 +35,37 @@
       touch-action: none; /* let JS handle all touch */
     }
 
-    /* ── Viewport wrapper (fixed, clips the track) ── */
+    /* ── Viewport wrapper ── */
     #reel {
       position: fixed;
       inset: 0;
       overflow: hidden;
     }
 
-    /* ── Moving track — slides up/down via JS translateY ── */
-    #reelTrack {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      will-change: transform;
-      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* ── Card ── */
+    /* ── Cards: all stacked at the same position; classes slide them ── */
     .reel-card {
-      height: 100vh;
-      width: 100%;
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: env(safe-area-inset-top, 20px) 28px env(safe-area-inset-bottom, 24px);
-      position: relative;
       overflow: hidden;
+      /* Default: below viewport */
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    /* Active card: centred in viewport */
+    .reel-card.active {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    /* Already-visited card: above viewport */
+    .reel-card.prev {
+      transform: translateY(-100%);
+      pointer-events: none;
     }
 
     /* Background gradient — set via inline style --accent */
@@ -445,7 +450,7 @@ const DAYS = [
     verse:   '"In the beginning God created the heaven and the earth."',
     ref:     'Genesis 1:1',
     passage: 'Genesis 1',
-    context: 'The Bible's first word is not "man" but "God." Before anything existed, He did. Everything — matter, time, energy, life, beauty — is His deliberate creation. You are not an accident.',
+    context: 'The Bible\'s first word is not "man" but "God." Before anything existed, He did. Everything — matter, time, energy, life, beauty — is His deliberate creation. You are not an accident.',
     thread:  'The same God who speaks creation into existence in Genesis 1 will say "Behold, I make all things new" in Revelation 21:5. The story begins and ends with His creative word.',
   },
   {
@@ -825,21 +830,25 @@ function setCompleted(s) {
 }
 
 // ════════════════════════════════════════════════════════════
-// NAVIGATION — translateY on the track
+// NAVIGATION — CSS class toggling (active / prev / default)
 // ════════════════════════════════════════════════════════════
 function goTo(idx, animate = true) {
   if (idx < 0 || idx >= TOTAL) return;
   currentIdx = idx;
-  const track = document.getElementById('reelTrack');
-  const h = window.innerHeight;
+  const cards = document.querySelectorAll('.reel-card');
   if (!animate) {
-    track.style.transition = 'none';
+    cards.forEach(c => { c.style.transition = 'none'; });
+  }
+  cards.forEach((card, i) => {
+    card.classList.remove('active', 'prev');
+    if (i < idx)      card.classList.add('prev');
+    else if (i === idx) card.classList.add('active');
+    // i > idx → default: translateY(100%) via CSS
+  });
+  if (!animate) {
     requestAnimationFrame(() => {
-      track.style.transform = `translateY(${-idx * h}px)`;
-      requestAnimationFrame(() => { track.style.transition = ''; });
+      cards.forEach(c => { c.style.transition = ''; });
     });
-  } else {
-    track.style.transform = `translateY(${-idx * h}px)`;
   }
   updateUI(idx);
 }
@@ -862,9 +871,6 @@ function updateUI(idx) {
   document.getElementById('arrowUp').disabled   = (idx === 0);
   document.getElementById('arrowDown').disabled = (idx === TOTAL - 1);
 }
-
-// Resize — re-position without animation
-window.addEventListener('resize', () => goTo(currentIdx, false));
 
 // ════════════════════════════════════════════════════════════
 // TOUCH SWIPE
