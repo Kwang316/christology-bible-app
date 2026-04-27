@@ -32,25 +32,28 @@
       color: var(--text);
       font-family: var(--font-ui);
       overflow: hidden;
+      touch-action: none; /* let JS handle all touch */
     }
 
-    /* ── Reel container ── */
+    /* ── Viewport wrapper (fixed, clips the track) ── */
     #reel {
-      height: 100dvh;
-      height: 100vh; /* fallback */
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
     }
-    #reel::-webkit-scrollbar { display: none; }
+
+    /* ── Moving track — slides up/down via JS translateY ── */
+    #reelTrack {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      will-change: transform;
+      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
     /* ── Card ── */
     .reel-card {
-      height: 100dvh;
       height: 100vh;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -269,6 +272,27 @@
     .nav-dot.active { background: rgba(255,255,255,0.85); transform: scale(1.4); }
     .nav-dot.done { background: rgba(255,255,255,0.45); }
 
+    /* ── Arrow nav buttons ── */
+    #arrowUp, #arrowDown {
+      position: fixed;
+      right: 22px;
+      z-index: 200;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.15s, color 0.15s;
+    }
+    #arrowUp  { top: calc(50% - 46px); }
+    #arrowDown{ top: calc(50% + 10px); }
+    #arrowUp:hover, #arrowDown:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    #arrowUp:disabled, #arrowDown:disabled { opacity: 0.2; cursor: default; }
+
     /* ── Back to app link ── */
     #backLink {
       position: fixed;
@@ -348,46 +372,51 @@
 <!-- Back link -->
 <a id="backLink" href="index.html">← Full App</a>
 
+<!-- Nav arrows -->
+<button id="arrowUp"   onclick="goTo(currentIdx-1)" aria-label="Previous">↑</button>
+<button id="arrowDown" onclick="goTo(currentIdx+1)" aria-label="Next">↓</button>
+
 <!-- Reel -->
 <div id="reel">
+  <div id="reelTrack">
 
-  <!-- ── INTRO CARD ── -->
-  <div class="reel-card reel-intro"
-    style="
-      --accent-glow:  rgba(180,134,14,0.18);
-      --accent-glow2: rgba(100,60,10,0.12);
-      --accent-pill:  rgba(180,134,14,0.15);
-      --accent-text:  #d4a72a;
-      --accent-rule:  #b5860e;
-      --accent-ref:   #d4a72a;
-      --accent-btn:   #b5860e;
-      --accent-btn-text: #fff;
-    "
-    data-day="0">
-    <div class="card-inner" style="justify-content:center">
-      <span class="intro-cross">✝</span>
-      <div class="intro-title">Bible in<br/>40 Days</div>
-      <div class="intro-sub">
-        5 minutes a day.<br/>
-        The essential Messianic arc — from the first promise in Genesis<br/>to the final "Come, Lord Jesus" in Revelation.
-      </div>
-      <div class="intro-tags">
-        <span class="intro-tag">40 days</span>
-        <span class="intro-tag">5 min each</span>
-        <span class="intro-tag">KJV</span>
-        <span class="intro-tag">Christ-centered</span>
-      </div>
-      <div class="intro-start">
-        <span class="arrow-bounce">↓</span>
-        Scroll down to begin
-        <span class="arrow-bounce">↓</span>
+    <!-- ── INTRO CARD ── -->
+    <div class="reel-card reel-intro"
+      style="
+        --accent-glow:  rgba(180,134,14,0.18);
+        --accent-glow2: rgba(100,60,10,0.12);
+        --accent-pill:  rgba(180,134,14,0.15);
+        --accent-text:  #d4a72a;
+        --accent-rule:  #b5860e;
+        --accent-ref:   #d4a72a;
+        --accent-btn:   #b5860e;
+        --accent-btn-text: #fff;
+      "
+      data-day="0">
+      <div class="card-inner" style="justify-content:center">
+        <span class="intro-cross">✝</span>
+        <div class="intro-title">Bible in<br/>40 Days</div>
+        <div class="intro-sub">
+          5 minutes a day.<br/>
+          The essential Messianic arc — from the first promise in Genesis<br/>to the final "Come, Lord Jesus" in Revelation.
+        </div>
+        <div class="intro-tags">
+          <span class="intro-tag">40 days</span>
+          <span class="intro-tag">5 min each</span>
+          <span class="intro-tag">KJV</span>
+          <span class="intro-tag">Christ-centered</span>
+        </div>
+        <div class="intro-start">
+          <span class="arrow-bounce">↓</span>
+          Swipe up or tap ↓ to begin
+          <span class="arrow-bounce">↓</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Cards injected by JS -->
-  <div id="dayCards"></div>
+    <!-- Day cards injected directly into track by JS -->
 
+  </div><!-- end reelTrack -->
 </div><!-- end reel -->
 
 <script>
@@ -782,8 +811,11 @@ const DAYS = [
 ];
 
 // ════════════════════════════════════════════════════════════
-// RENDER
+// STATE
 // ════════════════════════════════════════════════════════════
+let currentIdx = 0;          // 0 = intro card
+const TOTAL = DAYS.length + 1; // intro + 40 days
+
 function getCompleted() {
   try { return new Set(JSON.parse(localStorage.getItem('reel_done')||'[]')); }
   catch(_) { return new Set(); }
@@ -792,26 +824,116 @@ function setCompleted(s) {
   try { localStorage.setItem('reel_done', JSON.stringify([...s])); } catch(_) {}
 }
 
-function buildCards() {
-  const done = getCompleted();
-  const container = document.getElementById('dayCards');
-  const dots = document.getElementById('navDots');
+// ════════════════════════════════════════════════════════════
+// NAVIGATION — translateY on the track
+// ════════════════════════════════════════════════════════════
+function goTo(idx, animate = true) {
+  if (idx < 0 || idx >= TOTAL) return;
+  currentIdx = idx;
+  const track = document.getElementById('reelTrack');
+  const h = window.innerHeight;
+  if (!animate) {
+    track.style.transition = 'none';
+    requestAnimationFrame(() => {
+      track.style.transform = `translateY(${-idx * h}px)`;
+      requestAnimationFrame(() => { track.style.transition = ''; });
+    });
+  } else {
+    track.style.transform = `translateY(${-idx * h}px)`;
+  }
+  updateUI(idx);
+}
 
-  container.innerHTML = DAYS.map((d, i) => {
-    const sec = SECTIONS[d.section];
+function updateUI(idx) {
+  // Progress bar
+  const pct = Math.round((idx / (TOTAL - 1)) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  if (idx > 0) {
+    bar.style.background = SECTIONS[DAYS[idx-1].section].rule;
+  }
+
+  // Nav dots
+  document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === idx - 1);
+  });
+
+  // Arrow buttons
+  document.getElementById('arrowUp').disabled   = (idx === 0);
+  document.getElementById('arrowDown').disabled = (idx === TOTAL - 1);
+}
+
+// Resize — re-position without animation
+window.addEventListener('resize', () => goTo(currentIdx, false));
+
+// ════════════════════════════════════════════════════════════
+// TOUCH SWIPE
+// ════════════════════════════════════════════════════════════
+let touchStartY = 0, touchStartTime = 0, swiping = false;
+
+document.getElementById('reel').addEventListener('touchstart', e => {
+  touchStartY    = e.touches[0].clientY;
+  touchStartTime = Date.now();
+  swiping        = true;
+}, { passive: true });
+
+document.getElementById('reel').addEventListener('touchend', e => {
+  if (!swiping) return;
+  swiping = false;
+  const dy       = touchStartY - e.changedTouches[0].clientY;
+  const dt       = Date.now() - touchStartTime;
+  const velocity = Math.abs(dy) / dt;
+  if (Math.abs(dy) > 40 || velocity > 0.35) {
+    goTo(currentIdx + (dy > 0 ? 1 : -1));
+  }
+}, { passive: true });
+
+// ════════════════════════════════════════════════════════════
+// MOUSE WHEEL
+// ════════════════════════════════════════════════════════════
+let wheelCooldown = false;
+document.getElementById('reel').addEventListener('wheel', e => {
+  e.preventDefault();
+  if (wheelCooldown) return;
+  wheelCooldown = true;
+  goTo(currentIdx + (e.deltaY > 0 ? 1 : -1));
+  setTimeout(() => { wheelCooldown = false; }, 500);
+}, { passive: false });
+
+// ════════════════════════════════════════════════════════════
+// KEYBOARD
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(currentIdx + 1); }
+  if (e.key === 'ArrowUp')                    { e.preventDefault(); goTo(currentIdx - 1); }
+});
+
+// ════════════════════════════════════════════════════════════
+// BUILD CARDS — injected directly into #reelTrack
+// ════════════════════════════════════════════════════════════
+function buildCards() {
+  const done  = getCompleted();
+  const track = document.getElementById('reelTrack');
+  const dots  = document.getElementById('navDots');
+
+  // Append day cards directly to track (siblings of intro card)
+  DAYS.forEach((d, i) => {
+    const sec    = SECTIONS[d.section];
     const isDone = done.has(i);
-    return `
-    <div class="reel-card" data-day="${i+1}"
-      style="
-        --accent-glow:  ${sec.glow};
-        --accent-glow2: ${sec.glow2};
-        --accent-pill:  ${sec.pill};
-        --accent-text:  ${sec.text};
-        --accent-rule:  ${sec.rule};
-        --accent-ref:   ${sec.ref};
-        --accent-btn:   ${sec.btn};
-        --accent-btn-text: ${sec.btnText};
-      ">
+    const div    = document.createElement('div');
+    div.className  = 'reel-card';
+    div.dataset.day = i + 1;
+    div.style.cssText = `
+      --accent-glow:  ${sec.glow};
+      --accent-glow2: ${sec.glow2};
+      --accent-pill:  ${sec.pill};
+      --accent-text:  ${sec.text};
+      --accent-rule:  ${sec.rule};
+      --accent-ref:   ${sec.ref};
+      --accent-btn:   ${sec.btn};
+      --accent-btn-text: ${sec.btnText};
+    `;
+    div.innerHTML = `
       <div class="card-inner">
         <div class="card-top">
           <div class="section-pill">${sec.label}</div>
@@ -829,105 +951,41 @@ function buildCards() {
           <div class="thread-text">${d.thread}</div>
         </div>
         <div class="card-bottom">
-          <button class="btn-done ${isDone?'done':''}" onclick="toggleDone(${i},this)">
+          <button class="btn-done ${isDone?'done':''}" id="btnDone-${i}" onclick="toggleDone(${i})">
             ${isDone ? '✓ Completed' : '✓ Mark as Read'}
           </button>
-          ${i < DAYS.length-1 ? '<div class="swipe-hint">swipe up for next day</div>' : '<div class="swipe-hint" style="color:rgba(255,255,255,0.5)">You\'ve finished the arc ✦</div>'}
+          ${i < DAYS.length-1
+            ? '<div class="swipe-hint">swipe up for next day</div>'
+            : '<div class="swipe-hint" style="color:rgba(255,255,255,0.5)">You\'ve finished the arc ✦</div>'}
         </div>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    track.appendChild(div);
+  });
 
-  // Nav dots (one per day, grouped into sets of 8)
+  // Nav dots
   dots.innerHTML = DAYS.map((_, i) =>
-    `<div class="nav-dot ${done.has(i)?'done':''}" id="dot-${i}" onclick="jumpToDay(${i})" title="Day ${i+1}"></div>`
+    `<div class="nav-dot ${done.has(i)?'done':''}" id="dot-${i}"
+      onclick="goTo(${i+1})" title="Day ${i+1}"></div>`
   ).join('');
 }
 
-function toggleDone(index, btn) {
+function toggleDone(index) {
   const done = getCompleted();
-  if (done.has(index)) {
-    done.delete(index);
-    btn.className = 'btn-done';
-    btn.textContent = '✓ Mark as Read';
-    const dot = document.getElementById(`dot-${index}`);
-    if (dot) dot.classList.remove('done');
-  } else {
-    done.add(index);
-    btn.className = 'btn-done done';
-    btn.textContent = '✓ Completed';
-    const dot = document.getElementById(`dot-${index}`);
-    if (dot) dot.classList.add('done');
-  }
+  const isDone = done.has(index);
+  isDone ? done.delete(index) : done.add(index);
   setCompleted(done);
-  updateProgressBar(index + 1); // +1 offset for intro card
+  const btn = document.getElementById(`btnDone-${index}`);
+  if (btn) { btn.className = isDone ? 'btn-done' : 'btn-done done'; btn.textContent = isDone ? '✓ Mark as Read' : '✓ Completed'; }
+  const dot = document.getElementById(`dot-${index}`);
+  if (dot) dot.classList.toggle('done', !isDone);
 }
-
-function jumpToDay(index) {
-  const cards = document.querySelectorAll('.reel-card');
-  // index+1 because cards[0] is the intro
-  if (cards[index+1]) cards[index+1].scrollIntoView({ behavior: 'smooth' });
-}
-
-// ════════════════════════════════════════════════════════════
-// SCROLL OBSERVER — update progress bar & active dot
-// ════════════════════════════════════════════════════════════
-let currentAccent = SECTIONS.creation.rule;
-
-function updateProgressBar(cardIndex) {
-  const total = DAYS.length + 1; // +1 for intro
-  const pct = Math.round((cardIndex / total) * 100);
-  const bar = document.getElementById('progressBar');
-  bar.style.width = pct + '%';
-  // Update color based on section
-  if (cardIndex > 0 && cardIndex <= DAYS.length) {
-    const sec = SECTIONS[DAYS[cardIndex-1].section];
-    bar.style.background = sec.rule;
-  }
-}
-
-function setupScrollObserver() {
-  const options = { root: document.getElementById('reel'), threshold: 0.6 };
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const dayNum = parseInt(entry.target.dataset.day);
-      // Update progress bar
-      updateProgressBar(dayNum);
-      // Update nav dots
-      document.querySelectorAll('.nav-dot').forEach((dot, i) => dot.classList.remove('active'));
-      if (dayNum > 0) {
-        const dot = document.getElementById(`dot-${dayNum-1}`);
-        if (dot) dot.classList.add('active');
-      }
-    });
-  }, options);
-
-  document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
-}
-
-// ════════════════════════════════════════════════════════════
-// KEYBOARD NAV
-// ════════════════════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  const reel = document.getElementById('reel');
-  const h = window.innerHeight;
-  if (e.key === 'ArrowDown' || e.key === ' ') {
-    e.preventDefault();
-    reel.scrollBy({ top: h, behavior: 'smooth' });
-  }
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    reel.scrollBy({ top: -h, behavior: 'smooth' });
-  }
-});
 
 // ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
 buildCards();
-updateProgressBar(0);
-setupScrollObserver();
+goTo(0, false); // position without animation on load
+updateUI(0);
 </script>
 </body>
 </html>
