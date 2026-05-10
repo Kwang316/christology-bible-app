@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="A Mother's Heart" />
+  <meta name="theme-color" content="#07090f" />
+  <title>A Mother's Heart · Mother's Day Bible Reel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07090f;
+      --card: rgba(255,255,255,0.035);
+      --border: rgba(255,255,255,0.08);
+      --text: #f0ece4;
+      --text-dim: rgba(240,236,228,0.55);
+      --text-faint: rgba(240,236,228,0.3);
+      --font-ser: 'Libre Baskerville', Georgia, serif;
+      --font-ui:  'Inter', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #reel {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .reel-card {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) 28px env(safe-area-inset-bottom, 24px);
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    .reel-card.active {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .reel-card.prev {
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+
+    .reel-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 90% 70% at 50% -10%, var(--accent-glow), transparent 65%),
+        radial-gradient(ellipse 60% 50% at 85% 80%,  var(--accent-glow2), transparent 55%),
+        var(--bg);
+      z-index: 0;
+    }
+
+    .reel-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      height: 100%;
+      justify-content: center;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-top: 8px;
+    }
+    .section-pill {
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--accent-pill);
+      color: var(--accent-text);
+    }
+    .day-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    .rule {
+      width: 36px;
+      height: 2px;
+      background: var(--accent-rule);
+      border-radius: 2px;
+      margin: 0 0 20px;
+      opacity: 0.7;
+    }
+
+    .card-title {
+      font-family: var(--font-ser);
+      font-size: clamp(1.3rem, 5vw, 1.65rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 22px;
+      letter-spacing: -0.01em;
+    }
+
+    .verse-block {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-rule);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+    .verse-text {
+      font-family: var(--font-ser);
+      font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+      line-height: 1.75;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .verse-ref {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--accent-ref);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .context-text {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    .thread-block {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 24px;
+    }
+    .thread-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+    .thread-text {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: var(--text-faint);
+    }
+    .thread-text strong { color: var(--accent-ref); font-weight: 600; }
+
+    .card-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 8px;
+    }
+    .btn-done {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-done:active { transform: scale(0.97); }
+    .btn-done.done { background: rgba(255,255,255,0.08); color: var(--text-dim); border: 1px solid var(--border); }
+    .swipe-hint {
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .swipe-hint::before, .swipe-hint::after {
+      content: '';
+      width: 20px; height: 1px;
+      background: var(--text-faint);
+      opacity: 0.5;
+    }
+
+    #progressBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--accent-rule, #fff);
+      transition: width 0.4s ease, background 0.6s;
+      z-index: 100;
+    }
+
+    #navDots {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 100;
+    }
+    .nav-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .nav-dot.active { background: rgba(255,255,255,0.85); transform: scale(1.4); }
+    .nav-dot.done { background: rgba(255,255,255,0.45); }
+
+    #arrowUp, #arrowDown {
+      position: fixed;
+      right: 22px;
+      z-index: 200;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.15s, color 0.15s;
+    }
+    #arrowUp  { top: calc(50% - 46px); }
+    #arrowDown{ top: calc(50% + 10px); }
+    #arrowUp:hover, #arrowDown:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    #arrowUp:disabled, #arrowDown:disabled { opacity: 0.2; cursor: default; }
+
+    #backLink {
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 16px);
+      left: 16px;
+      z-index: 100;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      font-family: var(--font-ui);
+      transition: color 0.2s;
+    }
+    #backLink:hover { color: rgba(255,255,255,0.6); }
+
+    .reel-intro {
+      text-align: center;
+      padding: 40px 28px;
+    }
+    .intro-cross {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .intro-title {
+      font-family: var(--font-ser);
+      font-size: clamp(1.6rem, 6vw, 2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .intro-sub {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .intro-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .intro-tag {
+      padding: 5px 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.77rem;
+      color: var(--text-dim);
+    }
+    .intro-start {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .arrow-bounce {
+      animation: bounce 1.6s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(5px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+<div id="navDots"></div>
+<a id="backLink" href="index.html">← Full App</a>
+<button id="arrowUp"   onclick="goTo(currentIdx-1)" aria-label="Previous">↑</button>
+<button id="arrowDown" onclick="goTo(currentIdx+1)" aria-label="Next">↓</button>
+
+<div id="reel">
+  <div id="reelTrack">
+
+    <!-- INTRO CARD -->
+    <div class="reel-card reel-intro"
+      style="
+        --accent-glow:  rgba(190,100,130,0.2);
+        --accent-glow2: rgba(120,50,80,0.12);
+        --accent-pill:  rgba(190,100,130,0.15);
+        --accent-text:  #f9a8d4;
+        --accent-rule:  #db2777;
+        --accent-ref:   #f9a8d4;
+        --accent-btn:   #9d174d;
+        --accent-btn-text: #fff;
+      "
+      data-day="0">
+      <div class="card-inner" style="justify-content:center">
+        <span class="intro-cross">✝</span>
+        <div class="intro-title">A Mother's<br/>Heart</div>
+        <div class="intro-sub">
+          From Eve in the garden to Mary at the cross,<br/>
+          the Bible honors every mother who carried faith forward —<br/>
+          and points them all to Jesus Christ.
+        </div>
+        <div class="intro-tags">
+          <span class="intro-tag">25 readings</span>
+          <span class="intro-tag">5 min each</span>
+          <span class="intro-tag">KJV</span>
+          <span class="intro-tag">Christ-centered</span>
+          <span class="intro-tag">Mother's Day</span>
+        </div>
+        <div class="intro-start">
+          <span class="arrow-bounce">↓</span>
+          Swipe up or tap ↓ to begin
+          <span class="arrow-bounce">↓</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATA — A Mother's Heart: From Genesis to Revelation
+// ════════════════════════════════════════════════════════════
+
+const SECTIONS = {
+  creation:    { label: 'Creation',      glow: 'rgba(21,128,61,0.22)',   glow2: 'rgba(10,70,30,0.12)',  pill: 'rgba(21,128,61,0.18)',   text: '#4ade80', rule: '#22c55e', ref: '#4ade80', btn: '#166534', btnText: '#fff' },
+  faithful:    { label: 'Faithful',      glow: 'rgba(180,83,9,0.22)',    glow2: 'rgba(120,50,5,0.12)',  pill: 'rgba(180,83,9,0.18)',    text: '#fb923c', rule: '#f59e0b', ref: '#fb923c', btn: '#92400e', btnText: '#fff' },
+  courage:     { label: 'Courage',       glow: 'rgba(15,118,110,0.22)',  glow2: 'rgba(5,80,70,0.12)',   pill: 'rgba(15,118,110,0.18)',  text: '#2dd4bf', rule: '#14b8a6', ref: '#2dd4bf', btn: '#115e59', btnText: '#fff' },
+  prayer:      { label: 'Prayer',        glow: 'rgba(67,56,202,0.22)',   glow2: 'rgba(40,20,150,0.12)', pill: 'rgba(67,56,202,0.18)',   text: '#a5b4fc', rule: '#818cf8', ref: '#a5b4fc', btn: '#312e81', btnText: '#fff' },
+  wisdom:      { label: 'Wisdom',        glow: 'rgba(29,78,216,0.22)',   glow2: 'rgba(10,40,150,0.12)', pill: 'rgba(29,78,216,0.18)',   text: '#93c5fd', rule: '#60a5fa', ref: '#93c5fd', btn: '#1e3a8a', btnText: '#fff' },
+  promise:     { label: 'Promise',       glow: 'rgba(194,65,12,0.22)',   glow2: 'rgba(140,40,5,0.12)',  pill: 'rgba(194,65,12,0.18)',   text: '#fdba74', rule: '#ea580c', ref: '#fdba74', btn: '#9a3412', btnText: '#fff' },
+  incarnation: { label: 'Incarnation',   glow: 'rgba(157,23,77,0.22)',   glow2: 'rgba(100,10,50,0.12)', pill: 'rgba(157,23,77,0.18)',   text: '#f9a8d4', rule: '#ec4899', ref: '#f9a8d4', btn: '#831843', btnText: '#fff' },
+  eternal:     { label: 'Eternal Hope',  glow: 'rgba(124,58,237,0.25)',  glow2: 'rgba(80,20,200,0.14)', pill: 'rgba(124,58,237,0.2)',   text: '#c4b5fd', rule: '#a78bfa', ref: '#c4b5fd', btn: '#5b21b6', btnText: '#fff' },
+};
+
+const DAYS = [
+
+  // ── CREATION ─────────────────────────────────────────────
+  {
+    section: 'creation',
+    title:   'Mother of All Living',
+    verse:   '"And Adam called his wife\'s name Eve; because she was the mother of all living."',
+    ref:     'Genesis 3:20',
+    passage: 'Genesis 3:15–20',
+    context: 'Even in the shadow of the Fall, in the very moment of judgment, Adam names his wife Eve — Life. God had just spoken the first promise of redemption, and in that same breath, the gift of motherhood was given. Life would go on. Hope was not over.',
+    thread:  'Eve is the first mother, and the first bearer of the promise: "her seed shall bruise thy head" (Gen 3:15). Every mother since Eve has carried forward that redemptive thread — culminating in the virgin Mary, through whom the Seed Himself entered the world. Motherhood was woven into the plan of salvation from the very beginning.',
+  },
+  {
+    section: 'faithful',
+    title:   'God Sees the Single Mother',
+    verse:   '"And God heard the voice of the lad; and the angel of God called to Hagar out of heaven…What aileth thee, Hagar? fear not."',
+    ref:     'Genesis 21:17',
+    passage: 'Genesis 21:14–19',
+    context: 'Hagar — a slave woman, a Gentile, cast into the wilderness with her dying son Ishmael — sits down and weeps, unable to watch him die. She is utterly alone. Yet God hears the child\'s cry, calls to Hagar by name, and opens her eyes to a well of water. El Roi: the God who sees.',
+    thread:  'The same God who saw Hagar in her abandonment came in flesh to seek out the outcast, the forgotten, the exhausted. Jesus deliberately crossed social barriers to speak to women whom others overlooked (John 4:7–10; Luke 7:12–13). "He who sees" still sees every mother who weeps in secret.',
+  },
+
+  // ── COURAGE ──────────────────────────────────────────────
+  {
+    section: 'courage',
+    title:   'Hidden in Faith',
+    verse:   '"And when she saw him that he was a goodly child, she hid him three months."',
+    ref:     'Exodus 2:2',
+    passage: 'Exodus 2:1–10',
+    context: 'Jochebed defied Pharaoh\'s death decree and hid her infant son Moses for three months. When she could hide him no longer, she placed him in a papyrus basket on the Nile — an act of terrifying faith. Hebrews 11:23 says she "was not afraid of the king\'s commandment." Her courage preserved the deliverer of Israel.',
+    thread:  'Moses, hidden and preserved to deliver his people, foreshadows Christ — Himself hidden in Egypt as an infant (Matt 2:13–14) and preserved to become the world\'s Deliverer. A mother\'s courageous love was instrumental in God\'s saving plan both times. "By faith…they were not afraid of the king\'s commandment" (Heb 11:23).',
+  },
+  {
+    section: 'courage',
+    title:   'A Mother in Israel',
+    verse:   '"The villages ceased…until that I Deborah arose, that I arose a mother in Israel."',
+    ref:     'Judges 5:7',
+    passage: 'Judges 4–5',
+    context: 'Deborah — judge, prophetess, and military leader — chose the title that mattered most to her: "a mother in Israel." She arose when the land was oppressed and no one else would stand. She gave courage to Barak, led the nation to victory, and sang the triumph to God. A mother who led her people out of bondage.',
+    thread:  'Deborah\'s description of herself as a mother who arose to protect her people images the heart of Christ — the One who said "I am come that they might have life" (John 10:10) and "How often would I have gathered thy children together, even as a hen gathereth her chickens under her wings" (Matt 23:37). Maternal courage in leadership is a reflection of Christ\'s own shepherding love.',
+  },
+
+  // ── FAITHFUL ─────────────────────────────────────────────
+  {
+    section: 'faithful',
+    title:   'Where You Go, I Will Go',
+    verse:   '"Whither thou goest, I will go; and where thou lodgest, I will lodge: thy people shall be my people, and thy God my God."',
+    ref:     'Ruth 1:16',
+    passage: 'Ruth 1:14–18',
+    context: 'Ruth — a Gentile widow — refused to abandon her destitute mother-in-law Naomi. When Naomi urged her to return to her own people, Ruth clung to her. Her words are among the most beautiful covenant pledges in all of Scripture. She left everything to love a woman the world saw as used up and empty.',
+    thread:  'Ruth\'s unbreakable hesed (covenant love) for Naomi mirrors Christ\'s love for us — He would not abandon us in our spiritual poverty but entered our world to redeem us. Ruth is in the genealogy of Jesus (Matt 1:5). Her loyal love was the lineage through which Loyal Love Himself came. The God Ruth chose became the God who gave His Son.',
+  },
+  {
+    section: 'faithful',
+    title:   'The Shunammite\'s Faith',
+    verse:   '"And she answered, It is well…And he called Gehazi…Call this Shunammite. So he called her. And when she was come…he said, Take up thy son."',
+    ref:     '2 Kings 4:26, 36',
+    passage: '2 Kings 4:18–37',
+    context: 'The Shunammite woman\'s only son died suddenly. She rode urgently to Elisha — but when asked if all was well, she said only: "It is well." This was not denial; it was faith. She clung to God\'s prophet believing the impossible. And Elisha raised her boy from the dead and restored him to her arms.',
+    thread:  'This resurrection anticipates what Jesus does — calling the dead back to life and restoring them to those who mourn (Luke 7:15; John 11:44). The Shunammite\'s cry, "It is well," is the posture of every mother who entrusts her child to the God who raises the dead. "I am the resurrection, and the life" (John 11:25). He still restores what death takes.',
+  },
+  {
+    section: 'faithful',
+    title:   'Faith Passed Down',
+    verse:   '"When I call to remembrance the unfeigned faith that is in thee, which dwelt first in thy grandmother Lois, and thy mother Eunice."',
+    ref:     '2 Timothy 1:5',
+    passage: '2 Timothy 1:3–7',
+    context: 'Paul traces the sincere faith of Timothy — one of the most significant figures in the early church — directly to his mother Eunice and grandmother Lois. Three generations of faithful women prepared one powerful servant of God. Their quiet faithfulness shaped a man who would carry the gospel across the Roman world.',
+    thread:  'The faith that transforms nations often starts with a mother\'s knee, a bedtime prayer, a Scripture read at the table. "From a child thou hast known the holy scriptures, which are able to make thee wise unto salvation through faith which is in Christ Jesus" (2 Tim 3:15). Eunice\'s most lasting legacy was pointing her son to Christ.',
+  },
+
+  // ── PRAYER ───────────────────────────────────────────────
+  {
+    section: 'prayer',
+    title:   'For This Child I Prayed',
+    verse:   '"For this child I prayed; and the LORD hath given me my petition which I asked of him: Therefore also I have lent him to the LORD."',
+    ref:     '1 Samuel 1:27–28',
+    passage: '1 Samuel 1',
+    context: 'Hannah was barren and brokenhearted. Year after year she prayed with such desperate intensity that Eli thought she was drunk. God opened her womb and she conceived Samuel. Then — in one of the most stunning acts of surrender in Scripture — she gave him back to God. Her son became Israel\'s greatest prophet.',
+    thread:  '"For this child I prayed" is every praying mother\'s prayer. And Hannah\'s surrender — giving back to God what God gave her — is a picture of what the Father would one day do: give His only Son for the world (John 3:16). The child Hannah offered prefigures the Child the Father gave. Both were given to save a people.',
+  },
+  {
+    section: 'prayer',
+    title:   'Hannah\'s Song of Triumph',
+    verse:   '"My heart rejoiceth in the LORD…There is none holy as the LORD…He raiseth up the poor out of the dust…He shall give strength unto his king, and exalt the horn of his anointed."',
+    ref:     '1 Samuel 2:1–2, 8, 10',
+    passage: '1 Samuel 2:1–10',
+    context: 'Hannah\'s prayer of thanksgiving after Samuel\'s birth is not just personal gratitude — it is prophetic theology. She speaks of God reversing the proud and the humble, filling the hungry, and exalting His anointed king. Mary will echo this song almost word for word 1,100 years later.',
+    thread:  'Hannah closes with words about "his anointed" — the Hebrew word is messiah. A mother\'s song of praise becomes a prophecy of Christ. When Mary sings the Magnificat (Luke 1:46–55), she sings in the tradition of Hannah. Both women — barren and young, overlooked and unlikely — announced the coming of the King.',
+  },
+  {
+    section: 'prayer',
+    title:   'Lift Your Hands for Your Children',
+    verse:   '"Arise, cry out in the night: in the beginning of the watches pour out thine heart like water before the face of the Lord: lift up thy hands toward him for the life of thy young children."',
+    ref:     'Lamentations 2:19',
+    passage: 'Lamentations 2:18–22',
+    context: 'Jerusalem has fallen. The temple is burned. Children are fainting in the streets. Jeremiah, weeping amid the ruins, calls the mothers to one final act: pray. Pour out your heart like water. Lift your hands for the lives of your children. Even in total devastation, intercession is the mother\'s weapon.',
+    thread:  '"Pray without ceasing" (1 Thess 5:17). Jesus Himself intercedes for us at the right hand of the Father (Heb 7:25). The mother who prays through the night for her children participates in the very ministry of Christ — the ceaseless intercessor who "ever liveth to make intercession" (Heb 7:25) for all who are His.',
+  },
+
+  // ── WISDOM ───────────────────────────────────────────────
+  {
+    section: 'wisdom',
+    title:   'True Love Does Not Destroy',
+    verse:   '"Then spake the woman whose the living child was unto the king…O my lord, give her the living child, and in no wise slay it: she is the mother thereof."',
+    ref:     '1 Kings 3:26–27',
+    passage: '1 Kings 3:16–28',
+    context: 'Two women claim the same infant. Solomon proposes cutting the child in two. The true mother immediately gives up her claim — she would rather lose her son than see him destroyed. Her self-sacrificing love exposes itself, and Solomon restores the child. True love does not divide; it surrenders self for the beloved.',
+    thread:  'This story is a parable of the cross. Christ, the true guardian of His people, did not divide or destroy — He gave Himself so that we might live. "Greater love hath no man than this, that a man lay down his life for his friends" (John 15:13). The mother\'s love that prefers death to harming her child mirrors the love that drove Christ to Calvary.',
+  },
+  {
+    section: 'wisdom',
+    title:   'Children Are a Heritage',
+    verse:   '"Lo, children are an heritage of the LORD: and the fruit of the womb is his reward."',
+    ref:     'Psalm 127:3',
+    passage: 'Psalm 127',
+    context: 'The Psalm opens: "Except the LORD build the house, they labour in vain that build it." Everything — home, city, family — rests on God. Children are not achievements to be manufactured or trophies to be managed; they are gifts from God, entrusted to parents who are stewards, not owners. Every child is first His.',
+    thread:  'Every child bears the image of God (Gen 1:27). When Jesus says "Suffer the little children to come unto me, and forbid them not: for of such is the kingdom of God" (Mark 10:14), He affirms the sacred worth of the vulnerable and small. The mother who receives her children as gifts from God reflects Christ\'s own glad welcome of the young.',
+  },
+  {
+    section: 'wisdom',
+    title:   'Still as a Weaned Child',
+    verse:   '"Surely I have behaved and quieted myself, as a child that is weaned of his mother: my soul is even as a weaned child."',
+    ref:     'Psalm 131:2',
+    passage: 'Psalm 131',
+    context: 'This tiny Psalm — only three verses — captures the deepest spiritual rest: a soul that has stopped striving, stopped demanding, stopped trying to be its own god. David compares his quieted heart to a child who has learned to trust its mother even without immediate feeding. This is mature faith resting in presence alone.',
+    thread:  'Jesus invites every soul to this rest: "Come unto me, all ye that labour and are heavy laden, and I will give you rest" (Matt 11:28). The quiet trust of a child held in its mother\'s arms is an earthly shadow of the peace Christ alone gives. A mother\'s lap becomes a parable of the kingdom.',
+  },
+  {
+    section: 'wisdom',
+    title:   'She Openeth Her Mouth with Wisdom',
+    verse:   '"Strength and honour are her clothing…She openeth her mouth with wisdom; and in her tongue is the law of kindness. She looketh well to the ways of her household."',
+    ref:     'Proverbs 31:25–27',
+    passage: 'Proverbs 31:10–31',
+    context: 'The closing poem of Proverbs portrays a woman of extraordinary character — industrious, generous, wise, dignified, God-fearing, and tenderly present to her household. Her strength is not brute force but moral fiber. Her honor is not social status but the respect of those who know her best: her own children and husband.',
+    thread:  'Proverbs tells us that Christ is wisdom (Prov 8; 1 Cor 1:24). The Proverbs 31 woman is a portrait of wisdom made flesh in a life — serving, building up, speaking kindness, fearing God. Every mother who lives by the wisdom of Christ participates in His character. Her children rise up and call her blessed because she first called God blessed.',
+  },
+
+  // ── PROMISE ──────────────────────────────────────────────
+  {
+    section: 'promise',
+    title:   'Can a Mother Forget?',
+    verse:   '"Can a woman forget her sucking child, that she should not have compassion on the son of her womb? yea, they may forget, yet will I not forget thee."',
+    ref:     'Isaiah 49:15',
+    passage: 'Isaiah 49:14–16',
+    context: 'God uses the most intense human bond imaginable — a nursing mother and her infant — to describe the impossibility of His forgetting His people. Even if the unthinkable happened, God\'s love would not waver. He goes further: "I have graven thee upon the palms of my hands." Not ink — wounds.',
+    thread:  'The love that will not forget sent Jesus. "For God so loved the world, that he gave his only begotten Son" (John 3:16). The palms engraved with our names — those are the palms pierced on the cross. A mother\'s nursing love is an earthly shadow of a love that paid the ultimate price to never let go.',
+  },
+  {
+    section: 'promise',
+    title:   'As One Whom His Mother Comforteth',
+    verse:   '"As one whom his mother comforteth, so will I comfort you; and ye shall be comforted in Jerusalem."',
+    ref:     'Isaiah 66:13',
+    passage: 'Isaiah 66:10–14',
+    context: 'Isaiah closes with one of Scripture\'s most tender images of God: a mother comforting her grieving child. The same God who judges with fierce holiness also draws His people to Himself with the gentlest, most intimate comfort human language can describe — the arms of a mother.',
+    thread:  'Jesus fulfills this comfort in person: "Blessed are they that mourn: for they shall be comforted" (Matt 5:4). The Holy Spirit is called the Comforter — the Paraclete — "one called alongside" (John 14:26). God\'s comfort, described here in maternal language, comes to us through the Son and the Spirit. He does not send a pamphlet; He comes alongside.',
+  },
+  {
+    section: 'promise',
+    title:   'Rachel Weeping for Her Children',
+    verse:   '"A voice was heard in Ramah, lamentation, and bitter weeping; Rachel weeping for her children refused to be comforted for her children, because they were not."',
+    ref:     'Jeremiah 31:15',
+    passage: 'Jeremiah 31:15–17',
+    context: 'Jeremiah pictures Rachel — the beloved ancestral mother of Israel — weeping for her children taken into exile. It is one of the most heartbreaking images in Scripture: a mother who cannot be comforted because her children are gone. Yet the prophecy does not end there: "They shall come again from the land of the enemy."',
+    thread:  'Matthew applies this verse directly to the massacre of infants after Jesus\' birth (Matt 2:18). The mothers of Bethlehem wept because of Jesus. And Jesus would later weep at a tomb Himself (John 11:35), entering into every mother\'s grief. He does not stand above our sorrow — He steps into it. The One born in Bethlehem redeems even the tears shed because of His birth.',
+  },
+  {
+    section: 'promise',
+    title:   'God Teaching Us to Walk',
+    verse:   '"I taught Ephraim also to go, taking them by their arms; but they knew not that I healed them. I drew them with cords of a man, with bands of love."',
+    ref:     'Hosea 11:3–4',
+    passage: 'Hosea 11:1–4',
+    context: 'In one of the most intimate passages in all the prophets, God describes Himself stooping down to teach a toddler to walk — holding their arms, lifting them when they fall, leading them with gentle cords of love, not chains of compulsion. This is how God has always dealt with His people: with patient, maternal tenderness.',
+    thread:  'The God who bends down to teach a child to walk is the same God who bent all the way down to become a child in Bethlehem. "The Word was made flesh, and dwelt among us" (John 1:14). The Incarnation is the ultimate stooping — God reaching His arms around a stumbling humanity to lift us up. "He shall gather the lambs with his arm, and carry them in his bosom" (Isa 40:11).',
+  },
+
+  // ── INCARNATION ──────────────────────────────────────────
+  {
+    section: 'incarnation',
+    title:   'Blessed Art Thou Among Women',
+    verse:   '"Hail, thou that art highly favoured, the Lord is with thee: blessed art thou among women."',
+    ref:     'Luke 1:28',
+    passage: 'Luke 1:26–38',
+    context: 'The angel Gabriel greets Mary with words never spoken to any other human being. She is chosen — not because she is powerful or noble, but because she is faithful and humble and available. Her response is not ambition but wonder: "How shall this be?" And then the most consequential yes in human history: "Be it unto me according to thy word."',
+    thread:  'Mary is the one through whom the eternal Son took on human flesh. Without her yes, there is no Incarnation, no cross, no resurrection. She is honored — not worshiped — as the one whose body the second Person of the Trinity called home for nine months. God chose to enter the world as every person does: through a mother\'s womb.',
+  },
+  {
+    section: 'incarnation',
+    title:   'The Magnificat — A Mother\'s Theology',
+    verse:   '"My soul doth magnify the Lord, and my spirit hath rejoiced in God my Saviour. For he hath regarded the low estate of his handmaiden: for, behold, from henceforth all generations shall call me blessed."',
+    ref:     'Luke 1:46–48',
+    passage: 'Luke 1:46–55',
+    context: 'Mary\'s song — the Magnificat — is one of the great hymns of Scripture. Echoing Hannah\'s song from 1 Samuel, she proclaims that God scatters the proud, fills the hungry, and keeps His covenant promise to Abraham. She sings with the confidence of a theologian and the joy of a young mother who knows she carries the salvation of the world.',
+    thread:  'Mary sings of "God my Saviour" — she knows she needs a saviour too. The gospel she carries in her womb is the gospel she already sings in her soul. Jesus taught the same upside-down kingdom: "Blessed are the poor in spirit…Blessed are the meek" (Matt 5:3, 5). The mother\'s song and the Son\'s sermon are one theology.',
+  },
+  {
+    section: 'incarnation',
+    title:   'Pondering in Her Heart',
+    verse:   '"But Mary kept all these things, and pondered them in her heart."',
+    ref:     'Luke 2:19',
+    passage: 'Luke 2:8–20',
+    context: 'After the shepherds rush to Bethlehem, see the child, and leave praising God and telling everyone what they have heard — Mary does not post it or proclaim it. She holds it, turns it over, ponders it. She carries the mystery quietly, understanding that she has been entrusted with something too large for immediate words.',
+    thread:  'Mary\'s pondering is a model of faithful discipleship. Jesus said the seed that bears fruit is planted in "an honest and good heart, which…keep it, and bring forth fruit with patience" (Luke 8:15). The mother of Jesus models the very posture Jesus commended: receiving the word, holding it, letting it grow. She is the first and best disciple.',
+  },
+  {
+    section: 'incarnation',
+    title:   'When the Lord Saw Her',
+    verse:   '"And when the Lord saw her, he had compassion on her, and said unto her, Weep not…And he said, Young man, I say unto thee, Arise."',
+    ref:     'Luke 7:13–14',
+    passage: 'Luke 7:11–17',
+    context: 'A widow buries her only son outside the city gate. Jesus meets the funeral procession. He did not wait to be asked. Luke records a single sentence that changes everything: "When the Lord saw her, he had compassion on her." Then He stopped the procession, touched the coffin, and gave the young man back to his mother.',
+    thread:  'The word for compassion — splagchnizomai — means to be moved in one\'s deepest inmost being. Christ sees the grief of a bereaved mother and is moved to the depths, not to send thoughts, but to act. He is the resurrection (John 11:25). Every mother who has wept over a child\'s grave is seen by the One who stopped this funeral.',
+  },
+  {
+    section: 'incarnation',
+    title:   'Do Whatever He Tells You',
+    verse:   '"His mother saith unto the servants, Whatsoever he saith unto you, do it."',
+    ref:     'John 2:5',
+    passage: 'John 2:1–11',
+    context: 'At the wedding in Cana, when the wine runs out, Mary brings the need to Jesus. He responds with a gentle correction — "Mine hour is not yet come" — but Mary turns to the servants with absolute confidence in her son. These are the last recorded words of Mary in all of Scripture. They are also her greatest sermon.',
+    thread:  '"Whatsoever he saith unto you, do it." The greatest thing a mother can teach her children is not technique, success, or ambition — it is simple, total obedience to Christ. Mary\'s final recorded instruction is the best possible advice for every person who comes to Jesus with an empty vessel and an empty life. He will fill it. Do what He says.',
+  },
+  {
+    section: 'incarnation',
+    title:   'Woman, Behold Thy Son',
+    verse:   '"Now there stood by the cross of Jesus his mother…When Jesus therefore saw his mother…he saith unto his mother, Woman, behold thy son! Then saith he to the disciple, Behold thy mother!"',
+    ref:     'John 19:25–27',
+    passage: 'John 19:25–27',
+    context: 'Even in His agony on the cross, Jesus sees His mother\'s grief and provides for her. Nails in His hands, a sword through her soul (Luke 2:35) — and still He sees her. He entrusts Mary to the beloved disciple John, ensuring she will be cared for. From the cross, He keeps the fifth commandment: honor your mother.',
+    thread:  '"Honour thy father and thy mother" (Ex 20:12) — Jesus fulfills the law to His final breath. The One bearing the sins of the world still has love left to give His mother. This is who He is. The same hands that were stretched out for us in judgment are stretched out in care for one woman who is weeping below. He never stops being a son.',
+  },
+
+  // ── ETERNAL HOPE ─────────────────────────────────────────
+  {
+    section: 'eternal',
+    title:   'The Woman Who Brought Forth the King',
+    verse:   '"And there appeared a great wonder in heaven; a woman clothed with the sun, and the moon under her feet, and upon her head a crown of twelve stars: And she being with child cried, travailing in birth."',
+    ref:     'Revelation 12:1–2',
+    passage: 'Revelation 12:1–5',
+    context: 'In Revelation\'s great cosmic vision, a woman — representing both Israel and the church — brings forth a son who is caught up to God\'s throne. The dragon stands ready to devour the child at birth. This is the mother who birthed the King — and behind the vision stands the historical Mary, and behind her stands all of God\'s people who carried the hope of redemption through the centuries.',
+    thread:  'The whole drama of redemption is compressed into this image: the woman, the child, the serpent, the throne. It echoes Genesis 3:15 — the seed of the woman crushing the serpent\'s head. From Eve to Mary to the church, God\'s people have been the womb of salvation. And the child? He is "caught up unto God, and to his throne." The Risen Christ reigns. The dragon loses. The mother\'s labor was not in vain.',
+  },
+];
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let currentIdx = 0;
+const TOTAL = DAYS.length + 1;
+
+function getCompleted() {
+  try { return new Set(JSON.parse(localStorage.getItem('mday_reel_done')||'[]')); }
+  catch(_) { return new Set(); }
+}
+function setCompleted(s) {
+  try { localStorage.setItem('mday_reel_done', JSON.stringify([...s])); } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+function goTo(idx, animate = true) {
+  if (idx < 0 || idx >= TOTAL) return;
+  currentIdx = idx;
+  const cards = document.querySelectorAll('.reel-card');
+  if (!animate) {
+    cards.forEach(c => { c.style.transition = 'none'; });
+  }
+  cards.forEach((card, i) => {
+    card.classList.remove('active', 'prev');
+    if (i < idx)       card.classList.add('prev');
+    else if (i === idx) card.classList.add('active');
+  });
+  if (!animate) {
+    requestAnimationFrame(() => {
+      cards.forEach(c => { c.style.transition = ''; });
+    });
+  }
+  updateUI(idx);
+}
+
+function updateUI(idx) {
+  const pct = Math.round((idx / (TOTAL - 1)) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  if (idx > 0) {
+    bar.style.background = SECTIONS[DAYS[idx-1].section].rule;
+  }
+
+  document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === idx - 1);
+  });
+
+  document.getElementById('arrowUp').disabled   = (idx === 0);
+  document.getElementById('arrowDown').disabled = (idx === TOTAL - 1);
+}
+
+// ════════════════════════════════════════════════════════════
+// TOUCH SWIPE
+// ════════════════════════════════════════════════════════════
+let touchStartY = 0, touchStartTime = 0, swiping = false;
+
+document.getElementById('reel').addEventListener('touchstart', e => {
+  touchStartY    = e.touches[0].clientY;
+  touchStartTime = Date.now();
+  swiping        = true;
+}, { passive: true });
+
+document.getElementById('reel').addEventListener('touchend', e => {
+  if (!swiping) return;
+  swiping = false;
+  const dy       = touchStartY - e.changedTouches[0].clientY;
+  const dt       = Date.now() - touchStartTime;
+  const velocity = Math.abs(dy) / dt;
+  if (Math.abs(dy) > 40 || velocity > 0.35) {
+    goTo(currentIdx + (dy > 0 ? 1 : -1));
+  }
+}, { passive: true });
+
+// ════════════════════════════════════════════════════════════
+// MOUSE WHEEL
+// ════════════════════════════════════════════════════════════
+let wheelCooldown = false;
+document.getElementById('reel').addEventListener('wheel', e => {
+  e.preventDefault();
+  if (wheelCooldown) return;
+  wheelCooldown = true;
+  goTo(currentIdx + (e.deltaY > 0 ? 1 : -1));
+  setTimeout(() => { wheelCooldown = false; }, 500);
+}, { passive: false });
+
+// ════════════════════════════════════════════════════════════
+// KEYBOARD
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(currentIdx + 1); }
+  if (e.key === 'ArrowUp')                    { e.preventDefault(); goTo(currentIdx - 1); }
+});
+
+// ════════════════════════════════════════════════════════════
+// BUILD CARDS
+// ════════════════════════════════════════════════════════════
+function buildCards() {
+  const done  = getCompleted();
+  const track = document.getElementById('reelTrack');
+  const dots  = document.getElementById('navDots');
+
+  DAYS.forEach((d, i) => {
+    const sec    = SECTIONS[d.section];
+    const isDone = done.has(i);
+    const div    = document.createElement('div');
+    div.className  = 'reel-card';
+    div.dataset.day = i + 1;
+    div.style.cssText = `
+      --accent-glow:  ${sec.glow};
+      --accent-glow2: ${sec.glow2};
+      --accent-pill:  ${sec.pill};
+      --accent-text:  ${sec.text};
+      --accent-rule:  ${sec.rule};
+      --accent-ref:   ${sec.ref};
+      --accent-btn:   ${sec.btn};
+      --accent-btn-text: ${sec.btnText};
+    `;
+    div.innerHTML = `
+      <div class="card-inner">
+        <div class="card-top">
+          <div class="section-pill">${sec.label}</div>
+          <div class="day-label">${i+1} of ${DAYS.length}</div>
+        </div>
+        <div class="rule"></div>
+        <div class="card-title">${d.title}</div>
+        <div class="verse-block">
+          <div class="verse-text">${d.verse}</div>
+          <div class="verse-ref">${d.ref} &nbsp;·&nbsp; ${d.passage}</div>
+        </div>
+        <div class="context-text">${d.context}</div>
+        <div class="thread-block">
+          <span class="thread-icon">✝</span>
+          <div class="thread-text">${d.thread}</div>
+        </div>
+        <div class="card-bottom">
+          <button class="btn-done ${isDone?'done':''}" id="btnDone-${i}" onclick="toggleDone(${i})">
+            ${isDone ? '✓ Completed' : '✓ Mark as Read'}
+          </button>
+          ${i < DAYS.length-1
+            ? '<div class="swipe-hint">swipe up for next reading</div>'
+            : '<div class="swipe-hint" style="color:rgba(255,255,255,0.5)">She shall be praised ✦</div>'}
+        </div>
+      </div>`;
+    track.appendChild(div);
+  });
+
+  dots.innerHTML = DAYS.map((_, i) =>
+    `<div class="nav-dot ${done.has(i)?'done':''}" id="dot-${i}"
+      onclick="goTo(${i+1})" title="${i+1} of ${DAYS.length}"></div>`
+  ).join('');
+}
+
+function toggleDone(index) {
+  const done = getCompleted();
+  const isDone = done.has(index);
+  isDone ? done.delete(index) : done.add(index);
+  setCompleted(done);
+  const btn = document.getElementById(`btnDone-${index}`);
+  if (btn) { btn.className = isDone ? 'btn-done' : 'btn-done done'; btn.textContent = isDone ? '✓ Mark as Read' : '✓ Completed'; }
+  const dot = document.getElementById(`dot-${index}`);
+  if (dot) dot.classList.toggle('done', !isDone);
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+buildCards();
+goTo(0, false);
+updateUI(0);
+</script>
+</body>
+</html>
