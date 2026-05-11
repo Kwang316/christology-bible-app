@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="A Man After God's Heart" />
+  <meta name="theme-color" content="#07090f" />
+  <title>A Man After God's Heart · Biblical Manhood Reel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07090f;
+      --card: rgba(255,255,255,0.035);
+      --border: rgba(255,255,255,0.08);
+      --text: #f0ece4;
+      --text-dim: rgba(240,236,228,0.55);
+      --text-faint: rgba(240,236,228,0.3);
+      --font-ser: 'Libre Baskerville', Georgia, serif;
+      --font-ui:  'Inter', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #reel { position: fixed; inset: 0; overflow: hidden; }
+
+    .reel-card {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) 28px env(safe-area-inset-bottom, 24px);
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    .reel-card.active  { transform: translateY(0);    pointer-events: auto; }
+    .reel-card.prev    { transform: translateY(-100%); pointer-events: none; }
+
+    .reel-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 90% 70% at 50% -10%, var(--accent-glow),  transparent 65%),
+        radial-gradient(ellipse 60% 50% at 85% 80%,  var(--accent-glow2), transparent 55%),
+        var(--bg);
+      z-index: 0;
+    }
+    .reel-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: center;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-top: 8px;
+    }
+    .section-pill {
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--accent-pill);
+      color: var(--accent-text);
+    }
+    .day-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    .rule {
+      width: 36px;
+      height: 2px;
+      background: var(--accent-rule);
+      border-radius: 2px;
+      margin: 0 0 20px;
+      opacity: 0.7;
+    }
+
+    .card-title {
+      font-family: var(--font-ser);
+      font-size: clamp(1.3rem, 5vw, 1.65rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 22px;
+      letter-spacing: -0.01em;
+    }
+
+    .verse-block {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-rule);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+    .verse-text {
+      font-family: var(--font-ser);
+      font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+      line-height: 1.75;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .verse-ref {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--accent-ref);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .context-text {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    .thread-block {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 24px;
+    }
+    .thread-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+    .thread-text { font-size: 0.8rem; line-height: 1.6; color: var(--text-faint); }
+    .thread-text strong { color: var(--accent-ref); font-weight: 600; }
+
+    .card-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 8px;
+    }
+    .btn-done {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-done:active { transform: scale(0.97); }
+    .btn-done.done { background: rgba(255,255,255,0.08); color: var(--text-dim); border: 1px solid var(--border); }
+    .swipe-hint {
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .swipe-hint::before, .swipe-hint::after {
+      content: '';
+      width: 20px; height: 1px;
+      background: var(--text-faint);
+      opacity: 0.5;
+    }
+
+    #progressBar {
+      position: fixed; top: 0; left: 0; height: 2px;
+      background: var(--accent-rule, #fff);
+      transition: width 0.4s ease, background 0.6s;
+      z-index: 100;
+    }
+
+    #navDots {
+      position: fixed; right: 10px; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 5px;
+      z-index: 100;
+    }
+    .nav-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .nav-dot.active { background: rgba(255,255,255,0.85); transform: scale(1.4); }
+    .nav-dot.done   { background: rgba(255,255,255,0.45); }
+
+    #arrowUp, #arrowDown {
+      position: fixed; right: 22px; z-index: 200;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.15s, color 0.15s;
+    }
+    #arrowUp  { top: calc(50% - 46px); }
+    #arrowDown{ top: calc(50% + 10px); }
+    #arrowUp:hover, #arrowDown:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    #arrowUp:disabled, #arrowDown:disabled { opacity: 0.2; cursor: default; }
+
+    #backLink {
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 16px);
+      left: 16px; z-index: 100;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      font-family: var(--font-ui);
+      transition: color 0.2s;
+    }
+    #backLink:hover { color: rgba(255,255,255,0.6); }
+
+    .reel-intro { text-align: center; padding: 40px 28px; }
+    .intro-cross { font-size: 2.5rem; margin-bottom: 20px; display: block; }
+    .intro-title {
+      font-family: var(--font-ser);
+      font-size: clamp(1.6rem, 6vw, 2rem);
+      font-weight: 700; line-height: 1.2; margin-bottom: 12px;
+    }
+    .intro-sub {
+      font-size: 0.9rem; color: var(--text-dim);
+      line-height: 1.6; margin-bottom: 28px;
+    }
+    .intro-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center; margin-bottom: 28px;
+    }
+    .intro-tag {
+      padding: 5px 13px; border: 1px solid var(--border);
+      border-radius: 999px; font-size: 0.77rem; color: var(--text-dim);
+    }
+    .intro-start {
+      font-size: 0.78rem; color: rgba(255,255,255,0.35);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .arrow-bounce { animation: bounce 1.6s ease-in-out infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(5px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+<div id="navDots"></div>
+<a id="backLink" href="index.html">← Full App</a>
+<button id="arrowUp"   onclick="goTo(currentIdx-1)" aria-label="Previous">↑</button>
+<button id="arrowDown" onclick="goTo(currentIdx+1)" aria-label="Next">↓</button>
+
+<div id="reel">
+  <div id="reelTrack">
+
+    <!-- INTRO CARD -->
+    <div class="reel-card reel-intro"
+      style="
+        --accent-glow:  rgba(161,98,7,0.2);
+        --accent-glow2: rgba(100,55,5,0.12);
+        --accent-pill:  rgba(161,98,7,0.15);
+        --accent-text:  #fbbf24;
+        --accent-rule:  #d97706;
+        --accent-ref:   #fbbf24;
+        --accent-btn:   #92400e;
+        --accent-btn-text: #fff;
+      "
+      data-day="0">
+      <div class="card-inner" style="justify-content:center">
+        <span class="intro-cross">✝</span>
+        <div class="intro-title">A Man After<br/>God's Heart</div>
+        <div class="intro-sub">
+          From Adam in the garden to the conquering King of Revelation —<br/>
+          the Bible defines true manhood not by the world's standards<br/>
+          but by the sinless God-Man, Jesus Christ.
+        </div>
+        <div class="intro-tags">
+          <span class="intro-tag">25 readings</span>
+          <span class="intro-tag">5 min each</span>
+          <span class="intro-tag">KJV</span>
+          <span class="intro-tag">Christ-centered</span>
+          <span class="intro-tag">Biblical Manhood</span>
+        </div>
+        <div class="intro-start">
+          <span class="arrow-bounce">↓</span>
+          Swipe up or tap ↓ to begin
+          <span class="arrow-bounce">↓</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATA — A Man After God's Heart: Biblical Manhood & Christ
+// ════════════════════════════════════════════════════════════
+
+const SECTIONS = {
+  identity:  { label: 'Identity',          glow: 'rgba(21,128,61,0.22)',   glow2: 'rgba(10,70,30,0.12)',  pill: 'rgba(21,128,61,0.18)',   text: '#4ade80', rule: '#22c55e', ref: '#4ade80', btn: '#166534', btnText: '#fff' },
+  call:      { label: 'The Call',           glow: 'rgba(161,98,7,0.22)',    glow2: 'rgba(100,60,5,0.12)',  pill: 'rgba(161,98,7,0.18)',    text: '#fbbf24', rule: '#d97706', ref: '#fbbf24', btn: '#92400e', btnText: '#fff' },
+  integrity: { label: 'Integrity',          glow: 'rgba(15,118,110,0.22)',  glow2: 'rgba(5,80,70,0.12)',   pill: 'rgba(15,118,110,0.18)',  text: '#2dd4bf', rule: '#14b8a6', ref: '#2dd4bf', btn: '#115e59', btnText: '#fff' },
+  courage:   { label: 'Courage',            glow: 'rgba(153,27,27,0.25)',   glow2: 'rgba(100,10,10,0.14)', pill: 'rgba(153,27,27,0.2)',    text: '#fca5a5', rule: '#ef4444', ref: '#fca5a5', btn: '#7f1d1d', btnText: '#fff' },
+  servant:   { label: 'Servant Leader',     glow: 'rgba(29,78,216,0.22)',   glow2: 'rgba(10,40,150,0.12)', pill: 'rgba(29,78,216,0.18)',   text: '#93c5fd', rule: '#60a5fa', ref: '#93c5fd', btn: '#1e3a8a', btnText: '#fff' },
+  warrior:   { label: 'Spiritual Warrior',  glow: 'rgba(67,56,202,0.22)',   glow2: 'rgba(40,20,150,0.12)', pill: 'rgba(67,56,202,0.18)',   text: '#a5b4fc', rule: '#818cf8', ref: '#a5b4fc', btn: '#312e81', btnText: '#fff' },
+  godman:    { label: 'The God-Man',        glow: 'rgba(180,83,9,0.28)',    glow2: 'rgba(130,55,5,0.16)',  pill: 'rgba(180,83,9,0.22)',    text: '#fdba74', rule: '#f97316', ref: '#fdba74', btn: '#9a3412', btnText: '#fff' },
+  eternal:   { label: 'Conquering King',    glow: 'rgba(124,58,237,0.25)',  glow2: 'rgba(80,20,200,0.14)', pill: 'rgba(124,58,237,0.2)',   text: '#c4b5fd', rule: '#a78bfa', ref: '#c4b5fd', btn: '#5b21b6', btnText: '#fff' },
+};
+
+const DAYS = [
+
+  // ── IDENTITY ─────────────────────────────────────────────
+  {
+    section: 'identity',
+    title:   'Made in the Image of God',
+    verse:   '"So God created man in his own image, in the image of God created he him; male and female created he them."',
+    ref:     'Genesis 1:27',
+    passage: 'Genesis 1:26–28',
+    context: 'Before a man has a career, a title, an achievement, or a failure — he bears the image of God. This is the foundation of male identity: not performance, not prowess, not what others think, but the indelible stamp of his Creator. Every man is made to reflect and represent God in the world.',
+    thread:  'Jesus is "the image of the invisible God" (Col 1:15) — the perfect human display of who God is. Every man is made to reflect what Jesus perfectly embodies. The goal of the Christian life is to be "conformed to the image of his Son" (Rom 8:29). Man\'s dignity begins in creation; his destiny is conformity to Christ.',
+  },
+  {
+    section: 'identity',
+    title:   'Placed Here to Work and Guard',
+    verse:   '"And the LORD God took the man, and put him into the garden of Eden to dress it and to keep it."',
+    ref:     'Genesis 2:15',
+    passage: 'Genesis 2:15',
+    context: 'Before the Fall, before family, before sin — God gave man a mission: cultivate and protect. "Dress" means to work and develop; "keep" means to guard and defend. Purposeful labor and responsible stewardship were written into male identity before anything else went wrong.',
+    thread:  '"My Father worketh hitherto, and I work" (John 5:17). Jesus, the Second Adam, came to do what the first Adam abandoned — work the Father\'s field, protect His flock, guard His people. "I lay down my life for the sheep" (John 10:15) is the ultimate act of "keeping." He is the faithful Keeper Adam was called to be.',
+  },
+  {
+    section: 'identity',
+    title:   'Where Art Thou? — Accountability',
+    verse:   '"And the LORD God called unto Adam, and said unto him, Where art thou?"',
+    ref:     'Genesis 3:9',
+    passage: 'Genesis 3:6–12',
+    context: 'When sin entered the world, Adam hid. He blamed his wife. He deflected. He covered himself. God\'s first recorded question to a man is a call to stop hiding and take account: "Where are you?" The fall of man is not merely theological — it is a man refusing to stand in the open before God.',
+    thread:  'Jesus, the Second Adam, never hid. He set His face "steadfastly to go to Jerusalem" (Luke 9:51) — toward the cross, the judgment, the cup He did not want but did not refuse. "Not my will, but thine, be done" (Luke 22:42). Where the first man hid from God, the God-Man walked straight toward God\'s will at infinite cost to Himself.',
+  },
+  {
+    section: 'identity',
+    title:   'Man Looketh on the Outward Appearance',
+    verse:   '"For the LORD seeth not as man seeth; for man looketh on the outward appearance, but the LORD looketh on the heart."',
+    ref:     '1 Samuel 16:7',
+    passage: '1 Samuel 16:1–13',
+    context: 'Samuel comes to anoint a king and is drawn to the tall, impressive sons of Jesse. God stops him. The world selects for size, looks, and charisma. God selects for the heart. He passes over seven impressive sons and chooses David — the youngest, the shepherd, the overlooked one.',
+    thread:  'Jesus came as "a root out of a dry ground: he hath no form nor comeliness; and when we shall see him, there is no beauty that we should desire him" (Isa 53:2). The world passed over Jesus. God exalted Him. A man\'s worth before God is not his appearance, status, or strength — it is the state of his heart before his King.',
+  },
+
+  // ── THE CALL ─────────────────────────────────────────────
+  {
+    section: 'call',
+    title:   'Hear, O Israel — The Father\'s First Duty',
+    verse:   '"And thou shalt love the LORD thy God with all thine heart, and with all thy soul, and with all thy might. And these words…thou shalt teach them diligently unto thy children."',
+    ref:     'Deuteronomy 6:5–7',
+    passage: 'Deuteronomy 6:4–9',
+    context: 'The Shema is Israel\'s creed, and Moses addresses it first to fathers. Love God with everything — then take that love and press it into your children: when you sit, when you walk, when you lie down, when you rise. Biblical manhood begins with vertical devotion and flows outward into deliberate discipleship of the next generation.',
+    thread:  'Jesus called Deuteronomy 6:5 "the first and great commandment" (Matt 22:37–38). He lived it perfectly — loving the Father with every atom of His being, "I and my Father are one" (John 10:30). He then called His disciples not to a program but to a relationship: "Follow me." Every father who disciples his children images the Son discipling His own.',
+  },
+  {
+    section: 'call',
+    title:   'Be Strong and Courageous',
+    verse:   '"Be strong and courageous. Do not be afraid; do not be discouraged, for the LORD your God will be with you wherever you go."',
+    ref:     'Joshua 1:9',
+    passage: 'Joshua 1:1–9',
+    context: 'Moses is dead. Israel stands at the edge of the Promised Land. Joshua must lead two million people across the Jordan and into war. God does not give Joshua a battle plan — He gives him a command and a promise. Courage is not the absence of fear; it is obedience in the presence of fear, rooted in the presence of God.',
+    thread:  'In Gethsemane, Jesus was "sorrowful and very heavy" (Matt 26:37) — He felt the full weight of what was coming. Yet He rose from prayer and walked straight toward the soldiers who came to arrest Him. "Be strong and courageous" was not a demand Jesus made of Himself — it was a reality He lived for us, so that His courage could become our foundation (Heb 12:2).',
+  },
+  {
+    section: 'call',
+    title:   'Show Thyself a Man',
+    verse:   '"Be thou strong therefore, and shew thyself a man; And keep the charge of the LORD thy God, to walk in his ways."',
+    ref:     '1 Kings 2:2–3',
+    passage: '1 Kings 2:1–4',
+    context: 'David\'s last charge to his son Solomon is both tender and direct: be a man. But David immediately defines what that means — not wealth, not military power, not political shrewdness, but obedience to God. The measure of a man, in the end, is whether he walked with God.',
+    thread:  '"I always do those things that please him" (John 8:29). Jesus is the only man in history who perfectly kept "the charge of the LORD." Where every son of Adam drifted, Jesus held the course — through poverty, through rejection, through torture, through death. "Walking in God\'s ways" ultimately led Him to a cross. He showed us what it truly costs — and what it gains.',
+  },
+  {
+    section: 'call',
+    title:   'The Whole Duty of Man',
+    verse:   '"Fear God, and keep his commandments: for this is the whole duty of man. For God shall bring every work into judgment, with every secret thing."',
+    ref:     'Ecclesiastes 12:13–14',
+    passage: 'Ecclesiastes 12:9–14',
+    context: 'After exhausting every earthly pursuit — wisdom, pleasure, labor, wealth — the Preacher arrives at a single conclusion: fear God and obey Him. Everything else is vanity. This is not a depressing end; it is a clarifying one. Life stripped of its distractions resolves to one question: did you walk with God?',
+    thread:  'Jesus fulfilled every commandment (Matt 5:17) and "learned obedience by the things which he suffered" (Heb 5:8). The whole duty of man is perfectly embodied in the Son of Man. And because He kept every commandment perfectly on our behalf, men who trust Him are declared righteous — not by their performance, but by His. "He is made unto us wisdom, and righteousness, and sanctification, and redemption" (1 Cor 1:30).',
+  },
+  {
+    section: 'call',
+    title:   'Justice, Mercy, and Humility',
+    verse:   '"What doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?"',
+    ref:     'Micah 6:8',
+    passage: 'Micah 6:6–8',
+    context: 'Israel was offering elaborate sacrifices while exploiting the poor and ignoring justice. Micah cuts through the religious performance with three words. Justice: do right by others even at cost to yourself. Mercy: love those who don\'t deserve it. Humility: know your place before God. Three words. One complete portrait of a man.',
+    thread:  'Jesus embodied all three simultaneously at the cross. Justice: sin was fully punished — God did not excuse it. Mercy: the sinner was fully pardoned — God did not ignore us. Humility: the Son of God "made himself of no reputation, and took upon him the form of a servant" (Phil 2:7). The cross is Micah 6:8 in flesh and blood.',
+  },
+
+  // ── INTEGRITY ────────────────────────────────────────────
+  {
+    section: 'integrity',
+    title:   'The Kinsman Who Kept His Word',
+    verse:   '"And Boaz said…I have bought all that was Elimelech\'s…to raise up the name of the dead upon his inheritance."',
+    ref:     'Ruth 4:9–10',
+    passage: 'Ruth 4:1–12',
+    context: 'Boaz was a wealthy man of standing who could have ignored a destitute Gentile widow. Instead, he pursued legal redemption — paying her debts, restoring her inheritance, and marrying her out of covenant loyalty. He did it openly, publicly, at personal cost. His word was his bond and his love was not sentimental but sacrificial.',
+    thread:  'Boaz is the most explicit type of Christ in the Old Testament. To redeem, you must be kin (human) and able to pay the price. Jesus became flesh to be our kinsman and paid the price with His own blood (1 Pet 1:18–19). Boaz\'s integrity in keeping his covenant word anticipates Christ keeping His — at the cross.',
+  },
+  {
+    section: 'integrity',
+    title:   'Blessed Is the Man',
+    verse:   '"Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful. But his delight is in the law of the LORD."',
+    ref:     'Psalm 1:1–2',
+    passage: 'Psalm 1',
+    context: 'The Psalter opens with a portrait of the man who flourishes: not the powerful, not the ambitious, but the man who has rooted himself in God\'s word. He doesn\'t drift with the crowd. He meditates on Scripture day and night. He is "like a tree planted by the rivers of water" — stable, fruitful, and unshakeable.',
+    thread:  'Jesus is the Man of Psalm 1 in absolute fullness. When tempted in the wilderness, He answered every attack with "It is written" (Matt 4:4, 7, 10). His delight was the Father\'s will: "I delight to do thy will, O my God: yea, thy law is within my heart" (Ps 40:8). He is the tree planted by the river — and every man rooted in Him shares that stability.',
+  },
+  {
+    section: 'integrity',
+    title:   'The Man Who Fears the LORD',
+    verse:   '"Praise ye the LORD. Blessed is the man that feareth the LORD, that delighteth greatly in his commandments. His seed shall be mighty upon earth."',
+    ref:     'Psalm 112:1–2',
+    passage: 'Psalm 112',
+    context: 'Psalm 112 is the companion to Psalm 111 — one describes who God is, the other describes the man who reflects God\'s character. The God-fearing man is generous, gracious, compassionate, steady, unafraid of bad news, confident in God. His life is not sheltered from trouble — it is unshakeable in it.',
+    thread:  'Jesus feared God in the deepest sense — not servile dread but reverent awe. "In that he feared" God (Heb 5:7), He offered prayers with strong crying and tears and was heard. His perfect fear of the Father produced perfect obedience. And men who are in Christ inherit this: "to as many as received him, to them gave he power to become the sons of God" (John 1:12).',
+  },
+  {
+    section: 'integrity',
+    title:   'A Faithful Man — Who Can Find?',
+    verse:   '"Most men will proclaim every one his own goodness: but a faithful man who can find?"',
+    ref:     'Proverbs 20:6',
+    passage: 'Proverbs 20:6–7',
+    context: 'Proverbs is blunt: many men talk about their own character, but faithfulness — actual, consistent, costly faithfulness — is rare. The proverb does not ask "who can find a successful man" or "a talented man." It asks who can find a faithful one. Faithfulness is the currency of biblical manhood.',
+    thread:  'Jesus is the only Man in history of whom it can be said without qualification: faithful in all things. "Who committed no sin, neither was guile found in his mouth" (1 Pet 2:22). He was faithful to His mission (Heb 3:2), faithful to His disciples (John 13:1 — "he loved them unto the end"), faithful to His Father. The rare thing Proverbs seeks, Christ is.',
+  },
+  {
+    section: 'integrity',
+    title:   'Let Not the Mighty Man Glory',
+    verse:   '"Let not the wise man glory in his wisdom, neither let the mighty man glory in his might…but let him that glorieth glory in this, that he understandeth and knoweth me."',
+    ref:     'Jeremiah 9:23–24',
+    passage: 'Jeremiah 9:23–24',
+    context: 'The world defines manhood by three things: brains, muscle, and money. God, through Jeremiah, strips all three of their glory. Not wisdom, not power, not wealth — the only boast worth having is knowing God. A man\'s greatness is measured by the depth of his relationship with his Creator, not by his accomplishments.',
+    thread:  '"No man knoweth the Son, but the Father; neither knoweth any man the Father, save the Son, and he to whomsoever the Son will reveal him" (Matt 11:27). Jesus perfectly knew the Father — and His whole mission was to make the Father known. To know Christ is to know God. Every man\'s greatest achievement is not what he builds but Whom he knows.',
+  },
+
+  // ── COURAGE ──────────────────────────────────────────────
+  {
+    section: 'courage',
+    title:   'A Shelter in the Storm',
+    verse:   '"And a man shall be as an hiding place from the wind, and a covert from the tempest; as rivers of water in a dry place, as the shadow of a great rock in a weary land."',
+    ref:     'Isaiah 32:2',
+    passage: 'Isaiah 32:1–2',
+    context: 'Isaiah describes what righteous leadership looks like: a man who becomes a refuge for those around him. Not a man who commands, but one who shelters. Not one who takes, but one who provides cover. This is not weakness — it takes tremendous moral strength to be the one others hide behind in the storm.',
+    thread:  'Isaiah is ultimately prophesying the coming righteous King. Jesus is this man — perfectly. "Come unto me, all ye that labour and are heavy laden, and I will give you rest" (Matt 11:28). He is the Rock (1 Cor 10:4), the shelter, the shadow. Every man who protects, provides, and covers those in his care reflects the Refuge that Christ Himself is.',
+  },
+  {
+    section: 'courage',
+    title:   'Stand Fast — Quit Ye Like Men',
+    verse:   '"Watch ye, stand fast in the faith, quit you like men, be strong. Let all your things be done with charity."',
+    ref:     '1 Corinthians 16:13–14',
+    passage: '1 Corinthians 16:13–14',
+    context: 'Paul\'s closing charge to the Corinthian church is short and muscular: stay alert, hold the faith, act like men, be strong — and do it all in love. "Quit you like men" is an old call to courage: stop being cowardly; step up. The command does not stand alone; it is anchored in love (v.14) so it never becomes mere toughness.',
+    thread:  'Jesus modeled every word of this charge. He stood fast through Gethsemane, through the illegal trial, through the flogging, through the cross — without wavering, without cursing, without retreating. "He steadfastly set his face to go to Jerusalem" (Luke 9:51). And He did it all in love: "having loved his own…he loved them unto the end" (John 13:1).',
+  },
+  {
+    section: 'courage',
+    title:   'Fight the Good Fight of Faith',
+    verse:   '"Fight the good fight of faith, lay hold on eternal life, whereunto thou art also called…I give thee charge in the sight of God…keep this commandment without spot, unrebukeable."',
+    ref:     '1 Timothy 6:12–14',
+    passage: '1 Timothy 6:11–14',
+    context: 'Paul writes to Timothy — his young son in the faith — and calls him to a fight. Not a physical one. A faith-fight: the daily battle to pursue righteousness and flee evil, to hold fast what is true, to finish well. Paul frames it as a calling, not an option. Every man is called to this fight.',
+    thread:  '"Endured the cross, despising the shame, and is set down at the right hand of the throne of God" (Heb 12:2). Jesus fought and won the decisive battle — not by avoiding suffering but by enduring it all the way through. The fight Paul calls men to is already won at the cross. We fight from victory, not toward it. "Thanks be to God, which giveth us the victory through our Lord Jesus Christ" (1 Cor 15:57).',
+  },
+
+  // ── SERVANT LEADER ───────────────────────────────────────
+  {
+    section: 'servant',
+    title:   'He Took a Towel',
+    verse:   '"He riseth from supper, and laid aside his garments; and took a towel, and girded himself…and began to wash the disciples\' feet."',
+    ref:     'John 13:4–5',
+    passage: 'John 13:1–17',
+    context: 'The night before the cross. Jesus knows Judas will betray Him and the others will flee. He knows who He is — "knowing that the Father had given all things into his hands." And what does He do with that authority? He takes a towel and washes dirty feet. The greatest Man who ever lived takes the lowest position.',
+    thread:  '"The Son of man came not to be ministered unto, but to minister, and to give his life a ransom for many" (Matt 20:28). Jesus did not merely teach servant leadership — He is its definition and its power. He told His disciples: "I have given you an example, that ye should do as I have done to you" (John 13:15). Biblical leadership is a towel, not a throne.',
+  },
+  {
+    section: 'servant',
+    title:   'Love Your Wife as Christ Loved the Church',
+    verse:   '"Husbands, love your wives, even as Christ also loved the church, and gave himself for it."',
+    ref:     'Ephesians 5:25',
+    passage: 'Ephesians 5:25–33',
+    context: 'God gives husbands one standard for marriage. Not cultural, not conditional, not reciprocal — cruciform. As Christ loved: that means sacrificially, persistently, even when it cost everything. The husband is not the head because he is superior but because he is called to serve first, lay down his life first, love first.',
+    thread:  'The cross is the model for a Christian marriage. Christ did not wait for the church to be worthy before He loved her — "while we were yet sinners, Christ died for us" (Rom 5:8). He loved the church into holiness. Every husband who loves his wife at cost to himself is imaging what Jesus did — and is empowered to do it only because Jesus did it first.',
+  },
+  {
+    section: 'servant',
+    title:   'Not Lording It Over — Leading by Example',
+    verse:   '"Neither as being lords over God\'s heritage, but being examples to the flock. And when the chief Shepherd shall appear, ye shall receive a crown of glory that fadeth not away."',
+    ref:     '1 Peter 5:3–4',
+    passage: '1 Peter 5:1–4',
+    context: 'Peter addresses men who lead — elders, fathers, anyone in authority. The temptation of leadership is domination: to use position to take rather than serve. Peter forbids it. The standard is example, not command. And behind every leader stands the Chief Shepherd who will one day evaluate how His under-shepherds led His flock.',
+    thread:  'Jesus is the Chief Shepherd who gave the pattern: "The good shepherd giveth his life for the sheep" (John 10:11). He never used His authority to exploit — He used it to protect, to seek the lost, to carry the weak. Every man who leads must answer to the Shepherd who led to the cross. That accountability is both sobering and liberating.',
+  },
+
+  // ── SPIRITUAL WARRIOR ────────────────────────────────────
+  {
+    section: 'warrior',
+    title:   'The Second Adam Stands Firm',
+    verse:   '"And when the tempter came to him, he said…But he answered and said, It is written, Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."',
+    ref:     'Matthew 4:3–4',
+    passage: 'Matthew 4:1–11',
+    context: 'After 40 days of fasting in the wilderness, Jesus faced Satan directly. Three temptations: appetite, pride, and power — the same categories of sin that have undone men since Eden. Three times, Jesus answered with "It is written." He did not argue, negotiate, or improvise. He wielded the sword of Scripture and the enemy fled.',
+    thread:  'Where Adam fell in a garden, well-fed and at ease, Jesus stood in a wilderness, famished and alone. The first man surrendered to three temptations and plunged humanity into sin. The Second Adam resisted three temptations and began the reversal. Every man who faces temptation stands on the victory Jesus already won: "He was in all points tempted like as we are, yet without sin" (Heb 4:15). He understands. He overcame.',
+  },
+  {
+    section: 'warrior',
+    title:   'Put On the Full Armor of God',
+    verse:   '"Put on the whole armour of God, that ye may be able to stand against the wiles of the devil."',
+    ref:     'Ephesians 6:11',
+    passage: 'Ephesians 6:10–18',
+    context: 'Paul ends his most doctrinal letter with a military briefing. The battle is real, the enemy is cunning, and no man can survive it in his own strength. The armor — truth, righteousness, peace, faith, salvation, the Word, prayer — is not manufactured; it is received. Stand. Don\'t attack. Stand. The battle position of the Christian is to hold ground already won.',
+    thread:  '"Having spoiled principalities and powers, he made a shew of them openly, triumphing over them in it" (Col 2:15). Jesus won the decisive battle at the cross. The armor we wear is His victory applied to our lives. We do not fight for victory; we fight from it. Every piece of the armor points to Christ: He is our truth, our righteousness, our peace, our salvation, our Word.',
+  },
+
+  // ── THE GOD-MAN ──────────────────────────────────────────
+  {
+    section: 'godman',
+    title:   'He Grew in Wisdom and Stature',
+    verse:   '"And Jesus increased in wisdom and stature, and in favour with God and man."',
+    ref:     'Luke 2:52',
+    passage: 'Luke 2:41–52',
+    context: 'The Son of God grew up. He was not born a 30-year-old. He went through childhood, adolescence, and young adulthood. He learned a trade from Joseph. He submitted to His parents (Luke 2:51) even after demonstrating wisdom that astonished Temple scholars. He matured through every stage of male development — and He sanctified all of them.',
+    thread:  'The Incarnation means Jesus did not skip the ordinary years. He worked with His hands, paid taxes, got tired, ate meals, attended funerals, and went to weddings. "In all things it behoved him to be made like unto his brethren" (Heb 2:17). No stage of a man\'s life is outside the reach of the One who lived through it first — sinlessly.',
+  },
+  {
+    section: 'godman',
+    title:   'Rising Early to Pray',
+    verse:   '"And in the morning, rising up a great while before day, he went out, and departed into a solitary place, and there prayed."',
+    ref:     'Mark 1:35',
+    passage: 'Mark 1:29–38',
+    context: 'The day before this, Jesus had healed many and cast out demons. He could have slept in. Instead, while it was still dark, He withdrew to be alone with the Father. This was not a discipline for desperate times — it was the rhythm of His life. The Son of God built prayer into the structure of His days.',
+    thread:  'If the sinless Son of God needed solitary communion with the Father, how much more does every man? Jesus did not pray because He was weak — He prayed because prayer is the posture of sonship. "Whereby we cry, Abba, Father" (Rom 8:15). The praying Jesus models for every man the vertical relationship that makes every other relationship possible.',
+  },
+  {
+    section: 'godman',
+    title:   'Jesus Wept',
+    verse:   '"When Jesus therefore saw her weeping, and the Jews also weeping which came with her, he groaned in the spirit, and was troubled…Jesus wept."',
+    ref:     'John 11:33, 35',
+    passage: 'John 11:28–44',
+    context: 'The shortest verse in the Bible is not trivial. Jesus knew He was about to raise Lazarus. He could have walked to the tomb with calm certainty. Instead, He stopped, saw the grief of those He loved, and wept with them. The God-Man who held the power of resurrection was moved to tears by a friend\'s grief. Strength and tenderness are not opposites.',
+    thread:  'Jesus is "touched with the feeling of our infirmities" (Heb 4:15). He wept at death, was angry at hypocrisy, showed compassion for the sick, love for His friends. Biblical manhood is not emotional suppression — it is the full integration of strength and feeling, of power and tenderness. The Man who wept is the same Man who walked out of His own tomb.',
+  },
+  {
+    section: 'godman',
+    title:   'Run — Looking Unto Jesus',
+    verse:   '"Wherefore seeing we also are compassed about with so great a cloud of witnesses, let us run with patience the race that is set before us, looking unto Jesus the author and finisher of our faith."',
+    ref:     'Hebrews 12:1–2',
+    passage: 'Hebrews 12:1–3',
+    context: 'Hebrews 11 listed the great men of faith — Abel, Abraham, Moses, David. Then chapter 12 pivots: don\'t look at them. Look at Jesus. He is not one model among many — He is the Author who wrote the story and the Finisher who will complete it. Run with your eyes on Him. Every other model is a fellow runner; He is the destination.',
+    thread:  'The entire vision of biblical manhood resolves to this: fix your eyes on Jesus. Not on a cultural ideal, not on a personality type, not on a self-improvement program — on Jesus, who "endured the cross, despising the shame, and is set down at the right hand of the throne of God." He ran the hardest race, finished it, and now calls every man to run after Him. He alone makes the finish possible.',
+  },
+
+  // ── CONQUERING KING ──────────────────────────────────────
+  {
+    section: 'eternal',
+    title:   'The Warrior King Returns',
+    verse:   '"And I saw heaven opened, and behold a white horse; and he that sat upon him was called Faithful and True…and his name is called The Word of God."',
+    ref:     'Revelation 19:11, 13',
+    passage: 'Revelation 19:11–16',
+    context: 'The final image of Jesus in Scripture is not the suffering servant — it is the conquering King. Clothed in a garment dipped in blood, riding at the head of the armies of heaven, eyes like a flame of fire, a name above every name. Every person who rejected Him will see this. Every man who followed Him will ride with Him.',
+    thread:  'The sinless God-Man who was crucified in weakness (2 Cor 13:4) returns in uncontested power. This is where biblical manhood finds its ultimate template and its ultimate end: every man who walked in integrity, prayed in the dark, led with a towel, stood firm under fire, and fixed his eyes on Jesus — is riding behind the King who made it all possible. "He which testifieth these things saith, Surely I come quickly. Amen. Even so, come, Lord Jesus" (Rev 22:20).',
+  },
+];
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let currentIdx = 0;
+const TOTAL = DAYS.length + 1;
+
+function getCompleted() {
+  try { return new Set(JSON.parse(localStorage.getItem('manhood_reel_done')||'[]')); }
+  catch(_) { return new Set(); }
+}
+function setCompleted(s) {
+  try { localStorage.setItem('manhood_reel_done', JSON.stringify([...s])); } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+function goTo(idx, animate = true) {
+  if (idx < 0 || idx >= TOTAL) return;
+  currentIdx = idx;
+  const cards = document.querySelectorAll('.reel-card');
+  if (!animate) cards.forEach(c => { c.style.transition = 'none'; });
+  cards.forEach((card, i) => {
+    card.classList.remove('active', 'prev');
+    if (i < idx)       card.classList.add('prev');
+    else if (i === idx) card.classList.add('active');
+  });
+  if (!animate) {
+    requestAnimationFrame(() => { cards.forEach(c => { c.style.transition = ''; }); });
+  }
+  updateUI(idx);
+}
+
+function updateUI(idx) {
+  const pct = Math.round((idx / (TOTAL - 1)) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  if (idx > 0) bar.style.background = SECTIONS[DAYS[idx-1].section].rule;
+
+  document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === idx - 1);
+  });
+  document.getElementById('arrowUp').disabled   = (idx === 0);
+  document.getElementById('arrowDown').disabled = (idx === TOTAL - 1);
+}
+
+// ════════════════════════════════════════════════════════════
+// TOUCH SWIPE
+// ════════════════════════════════════════════════════════════
+let touchStartY = 0, touchStartTime = 0, swiping = false;
+
+document.getElementById('reel').addEventListener('touchstart', e => {
+  touchStartY    = e.touches[0].clientY;
+  touchStartTime = Date.now();
+  swiping        = true;
+}, { passive: true });
+
+document.getElementById('reel').addEventListener('touchend', e => {
+  if (!swiping) return;
+  swiping = false;
+  const dy       = touchStartY - e.changedTouches[0].clientY;
+  const dt       = Date.now() - touchStartTime;
+  const velocity = Math.abs(dy) / dt;
+  if (Math.abs(dy) > 40 || velocity > 0.35) goTo(currentIdx + (dy > 0 ? 1 : -1));
+}, { passive: true });
+
+// ════════════════════════════════════════════════════════════
+// MOUSE WHEEL
+// ════════════════════════════════════════════════════════════
+let wheelCooldown = false;
+document.getElementById('reel').addEventListener('wheel', e => {
+  e.preventDefault();
+  if (wheelCooldown) return;
+  wheelCooldown = true;
+  goTo(currentIdx + (e.deltaY > 0 ? 1 : -1));
+  setTimeout(() => { wheelCooldown = false; }, 500);
+}, { passive: false });
+
+// ════════════════════════════════════════════════════════════
+// KEYBOARD
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(currentIdx + 1); }
+  if (e.key === 'ArrowUp')                    { e.preventDefault(); goTo(currentIdx - 1); }
+});
+
+// ════════════════════════════════════════════════════════════
+// BUILD CARDS
+// ════════════════════════════════════════════════════════════
+function buildCards() {
+  const done  = getCompleted();
+  const track = document.getElementById('reelTrack');
+  const dots  = document.getElementById('navDots');
+
+  DAYS.forEach((d, i) => {
+    const sec    = SECTIONS[d.section];
+    const isDone = done.has(i);
+    const div    = document.createElement('div');
+    div.className   = 'reel-card';
+    div.dataset.day = i + 1;
+    div.style.cssText = `
+      --accent-glow:  ${sec.glow};
+      --accent-glow2: ${sec.glow2};
+      --accent-pill:  ${sec.pill};
+      --accent-text:  ${sec.text};
+      --accent-rule:  ${sec.rule};
+      --accent-ref:   ${sec.ref};
+      --accent-btn:   ${sec.btn};
+      --accent-btn-text: ${sec.btnText};
+    `;
+    div.innerHTML = `
+      <div class="card-inner">
+        <div class="card-top">
+          <div class="section-pill">${sec.label}</div>
+          <div class="day-label">${i+1} of ${DAYS.length}</div>
+        </div>
+        <div class="rule"></div>
+        <div class="card-title">${d.title}</div>
+        <div class="verse-block">
+          <div class="verse-text">${d.verse}</div>
+          <div class="verse-ref">${d.ref} &nbsp;·&nbsp; ${d.passage}</div>
+        </div>
+        <div class="context-text">${d.context}</div>
+        <div class="thread-block">
+          <span class="thread-icon">✝</span>
+          <div class="thread-text">${d.thread}</div>
+        </div>
+        <div class="card-bottom">
+          <button class="btn-done ${isDone?'done':''}" id="btnDone-${i}" onclick="toggleDone(${i})">
+            ${isDone ? '✓ Completed' : '✓ Mark as Read'}
+          </button>
+          ${i < DAYS.length-1
+            ? '<div class="swipe-hint">swipe up for next reading</div>'
+            : '<div class="swipe-hint" style="color:rgba(255,255,255,0.5)">He who endures to the end shall be saved ✦</div>'}
+        </div>
+      </div>`;
+    track.appendChild(div);
+  });
+
+  dots.innerHTML = DAYS.map((_, i) =>
+    `<div class="nav-dot ${done.has(i)?'done':''}" id="dot-${i}"
+      onclick="goTo(${i+1})" title="${i+1} of ${DAYS.length}"></div>`
+  ).join('');
+}
+
+function toggleDone(index) {
+  const done   = getCompleted();
+  const isDone = done.has(index);
+  isDone ? done.delete(index) : done.add(index);
+  setCompleted(done);
+  const btn = document.getElementById(`btnDone-${index}`);
+  if (btn) { btn.className = isDone ? 'btn-done' : 'btn-done done'; btn.textContent = isDone ? '✓ Mark as Read' : '✓ Completed'; }
+  const dot = document.getElementById(`dot-${index}`);
+  if (dot) dot.classList.toggle('done', !isDone);
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+buildCards();
+goTo(0, false);
+updateUI(0);
+</script>
+</body>
+</html>
